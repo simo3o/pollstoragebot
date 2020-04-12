@@ -1,3 +1,6 @@
+from dataLayer import get_poll_by_subject
+
+
 SIMUL_SCHEMA = {
     'MECANICA': 7,
     'FOC': 7,
@@ -22,11 +25,20 @@ SIMUL_SCHEMA = {
 }
 
 def get_subject_poll(subject, poll_number):
-    pass
-
+    request = {
+        subject: int(poll_number)
+    }
+    subjects = [subject.upper()]
+    quantity = [int(poll_number)]
+    polls = get_poll_by_subject(request)
+    return polls
 
 def get_simul(poll_number):
-    pass
+    simulacre = dict(SIMUL_SCHEMA)
+    for subject, quantity in simulacre.items():
+        simulacre[subject] = (quantity*poll_number)/90
+    polls = get_poll_by_subject(simulacre)
+    return polls
 
 
 def check_user(user_name):

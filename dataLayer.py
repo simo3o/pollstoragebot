@@ -49,6 +49,28 @@ def get_poll(subjects, quantites):
         return agregated_poll
 
 
+def get_poll_by_subject(request):
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
+    agregated_poll = []
+    try:
+        for subject, quantity in request.items():
+            with cnx.cursor() as cursor:
+                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject` FROM `polls` WHERE " \
+                      "`Subject`=%s  ORDER BY RAND()"
+                cursor.execute(sql, (subject))
+                results = cursor.fetchmany(quantity)
+                for result in results:
+                    poll_result = PollDto(result[0], result[1], result[2], result[3], result[4], result[5])
+                    agregated_poll.append(poll_result)
+
+    except cnx.DataError as e:
+        print('ERROR: ', e)
+        agregated_poll = ['ERROR']
+    finally:
+        cnx.close()
+        return agregated_poll
+
+
 def get_stats():
     cnx = pymysql.connect(user=DB_CONFIG.user, passwd=DB_CONFIG.password, host=DB_CONFIG.host, db='poll_bot')
 
