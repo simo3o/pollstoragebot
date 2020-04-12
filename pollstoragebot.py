@@ -23,6 +23,11 @@ def manage_users(context, user_id, group_id):
     else:
         return True
 
+def send_polls(context, user_id, polls):
+    for requested_poll in polls:
+        context.bot.send_poll(user_id, requested_poll.question, type='quiz', is_anonymous=True,
+                              allows_multiple_answers=False, options=requested_poll.answers,
+                              correct_option_id=requested_poll.correct_answer)
 
 def start(update, context):
     print('Command' + str(update))
@@ -37,7 +42,6 @@ def echo(update, context):
 def poll_received_handler(update, context):
     print('Poll' + str(update))
     if update.message.poll.type == 'quiz' and update.message.poll.correct_option_id is not None:
-        # subject = 'none'
         question = update.message.poll.question
         question_splitted = question.split(':', 1)
         if len(question_splitted) > 1:
@@ -66,7 +70,6 @@ def poll_received_handler(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text="No eres del grup necessari")
 
     else:
-        #        context.bot.send_message(chat_id=update.effective_chat.id, text='Poll not added')
         print('Poll not added')
 
 
@@ -74,21 +77,8 @@ def test(update, context):
     message_parts = update.message.text.split()
     user_request = userDto(update.message.from_user.id, GROUP_ID)
     if manage_users(context, update.message.from_user.id, GROUP_ID):
-        """
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text='You are allowed')
-        """
-        # requested_poll = get_poll(user_request, 1)
         requested_polls = get_subject_poll(message_parts[1], message_parts[2])
-        for requested_poll in requested_polls:
-            context.bot.send_poll(update.effective_user.id, requested_poll.question, type='quiz', is_anonymous=True,
-                                  allows_multiple_answers=False, options=requested_poll.answers,
-                                  correct_option_id=requested_poll.correct_answer)
-
-    # subject = message_parts[1]
-    # test_length = message_parts[2]
-    # context.bot.send_message(chat_id=update.effective_chat.id, text='subject: ' + subject + ' ; length: ' + test_length)
-
+        send_polls(context,update.effective_user.id,requested_polls)
 
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
@@ -98,11 +88,11 @@ def stats(update, context):
 def simulacre(update, context):
     message_parts = update.message.text.split()
     if manage_users(context, update.message.from_user.id, GROUP_ID):
-        requested_polls = get_simul(message_parts[1], message_parts[2])
-        for requested_poll in requested_polls:
-            context.bot.send_poll(update.effective_user.id, requested_poll.question, type='quiz', is_anonymous=True,
-                                  allows_multiple_answers=False, options=requested_poll.answers,
-                                  correct_option_id=requested_poll.correct_answer)
+        requested_polls = get_simul(message_parts[1])
+        if len(requested_polls) > 0:
+            send_polls(context, update.effective_user.id, requested_polls)
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
 
 
 def main():

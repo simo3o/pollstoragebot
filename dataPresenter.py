@@ -36,7 +36,7 @@ def get_subject_poll(subject, poll_number):
 def get_simul(poll_number):
     simulacre = dict(SIMUL_SCHEMA)
     for subject, quantity in simulacre.items():
-        simulacre[subject] = (quantity*poll_number)/90
+        simulacre[subject] = (quantity*int(poll_number))/90
     polls = get_poll_by_subject(simulacre)
     return polls
 
