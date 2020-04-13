@@ -51,12 +51,9 @@ def poll_received_handler(update, context):
 
         new_poll = PollDto(GROUP_ID, question, poll_answers,
                            update.message.poll.correct_option_id, update.message.from_user.id, subject)
-        poll_array = [new_poll, new_poll, new_poll]
         add_poll(new_poll)
         if manage_users(context, update.message.from_user.id, GROUP_ID):
-            context.bot.send_poll(GROUP_ID, new_poll.question, type='quiz', is_anonymous=True,
-                                  allows_multiple_answers=False, options=new_poll.answers,
-                                  correct_option_id=new_poll.correct_answer)
+            send_polls(context, GROUP_ID, [new_poll])
             context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta Publicada!")
             print('Poll added')
         else:
