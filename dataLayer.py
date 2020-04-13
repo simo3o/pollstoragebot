@@ -4,18 +4,6 @@ import json
 from config import DB_CONFIG
 
 
-def testdb():
-    cnx = pymysql.connect(user=DB_CONFIG.get('user', default=None), passwd=DB_CONFIG.get('password', default=None), host=DB_CONFIG.get('host', default=None), db='poll_bot')
-
-    try:
-        with cnx.cursor() as cursor:
-            sql = "INSERT INTO `users` (`User_Id`, `User_Group`) VALUES (%s, %s)"
-            cursor.execute(sql, (1, 'pepe'))
-            cnx.commit()
-    finally:
-        cnx.close()
-
-
 def add_poll(new_poll):
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
 

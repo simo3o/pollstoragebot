@@ -22,6 +22,13 @@ SIMUL_SCHEMA = {
     'CONSTI': 1,
     'EAC': 2,
     'EBEP': 3,
+    'PRL': 3,
+    'GUARDIA': 2,
+    'INTERIOR': 1,
+    'DONA': 1,
+    'VLA': 1,
+    'HIBRID': 1,
+    'FOREST': 1
 }
 
 def get_subject_poll(subject, poll_number):
@@ -36,7 +43,7 @@ def get_subject_poll(subject, poll_number):
 def get_simul(poll_number):
     simulacre = dict(SIMUL_SCHEMA)
     for subject, quantity in simulacre.items():
-        simulacre[subject] = (quantity*int(poll_number))/90
+        simulacre[subject] = (quantity*int(poll_number))/100
     polls = get_poll_by_subject(simulacre)
     return polls
 

@@ -10,9 +10,6 @@ from dataLayer import add_poll, get_poll, get_stats
 from dataPresenter import get_subject_poll, get_simul
 
 
-# from telegram.ext import PollHandler
-
-
 def manage_users(context, user_id, group_id):
     try:
         member_of_group = context.bot.get_chat_member(group_id, user_id)
@@ -31,17 +28,13 @@ def send_polls(context, user_id, polls):
 
 def start(update, context):
     print('Command' + str(update))
-    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
-
-
-def echo(update, context):
-    print('Echo' + str(update))
-    context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
+    print('Group_ID: ', str(update.effective_chat.id), 'Group_Name: ', str(update.effective_chat.username))
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
 
 
 def poll_received_handler(update, context):
     print('Poll' + str(update))
-    if update.message.poll.type == 'quiz' and update.message.poll.correct_option_id is not None:
+    if update.message.poll.type == 'quiz' and update.message.chat.type == 'private' and update.message.poll.correct_option_id is not None:
         question = update.message.poll.question
         question_splitted = question.split(':', 1)
         if len(question_splitted) > 1:
@@ -105,13 +98,11 @@ def main():
     simulacre_handler = CommandHandler('simulacre', simulacre)
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
-    echo_handler = MessageHandler(Filters.text, echo)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(test_handler)
     dispatcher.add_handler(simulacre_handler)
     dispatcher.add_handler(poll_handler)
     dispatcher.add_handler(stats_handler)
-    dispatcher.add_handler(echo_handler)
 
     updater.start_polling()
     updater.idle()
@@ -119,16 +110,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-    """
-            for inner_poll in poll_array:
-                context.bot.send_poll(update.effective_user.id, new_poll.question, type='quiz', is_anonymous=True,
-                                      allows_multiple_answers=False, options=inner_poll.answers,
-                                      correct_option_id=inner_poll.correct_answer)
-
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Poll added: ' + str(new_poll.question) + ' ; subject: ' + str(new_poll.subject))
-            # context.bot.send_poll(update.effective_user.id, new_poll.question, type='quiz', is_anonymous=False,
-            # allows_multiple_answers=False, options= new_poll.answers, correct_option_id = new_poll.correct_answer) Save
-            # some info about the poll the bot_data for later use in receive_poll_answer
-            print(new_poll.subject)
-    """
