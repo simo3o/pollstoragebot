@@ -22,7 +22,8 @@ def manage_users(context, user_id, group_id):
 
 def send_polls(context, user_id, polls):
     for requested_poll in polls:
-        context.bot.send_poll(user_id, requested_poll.question, type='quiz', is_anonymous=True,
+        member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+        context.bot.send_poll(user_id, member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
                               allows_multiple_answers=False, options=requested_poll.answers,
                               correct_option_id=requested_poll.correct_answer)
 
@@ -71,7 +72,7 @@ def test(update, context):
     user_request = userDto(update.message.from_user.id, GROUP_ID)
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         requested_polls = get_subject_poll(message_parts[1], message_parts[2])
-        send_polls(context,update.effective_user.id,requested_polls)
+        send_polls(context, update.effective_user.id, requested_polls)
 
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
