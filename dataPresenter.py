@@ -1,5 +1,6 @@
 from dataLayer import get_poll_by_subject
 from math import floor
+import random
 
 
 SIMUL_SCHEMA = {
@@ -46,6 +47,7 @@ def get_simul(poll_number):
     for subject, quantity in simulacre.items():
         simulacre[subject] = floor((quantity*int(poll_number))/100)
     polls = get_poll_by_subject(simulacre)
+    random.shuffle(polls)
     return polls
 
 
