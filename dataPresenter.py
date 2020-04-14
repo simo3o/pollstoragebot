@@ -1,4 +1,4 @@
-from dataLayer import get_poll_by_subject
+from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db
 from math import floor
 import random
 
@@ -58,4 +58,11 @@ def check_user(user_name):
 def get_stats():
     pass
 
+def poll_impugnation(id):
+    result = poll_impugnation_db(True, id)
+    return result
+    pass
+def add_poll(poll):
+    return add_poll_db(poll)
 
+    pass

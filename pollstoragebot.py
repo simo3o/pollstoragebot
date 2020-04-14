@@ -6,8 +6,8 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID
-from dataLayer import add_poll, get_poll, get_stats
-from dataPresenter import get_subject_poll, get_simul
+# from dataLayer import add_poll, get_poll, get_stats
+from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll
 
 
 def manage_users(context, user_id, group_id):
@@ -25,9 +25,9 @@ def send_polls(context, user_id, polls):
         try:
             member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
         except:
-            context.bot.send_message(chat_id=user_id, text='Hi ha hagut un aquesta enquesta')
+            context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
         else:
-            context.bot.send_poll(user_id, member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
+            context.bot.send_poll(user_id, str(requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
                               allows_multiple_answers=False, options=requested_poll.answers,
                               correct_option_id=requested_poll.correct_answer)
 
@@ -55,7 +55,8 @@ def poll_received_handler(update, context):
 
         new_poll = PollDto(GROUP_ID, question, poll_answers,
                            update.message.poll.correct_option_id, update.message.from_user.id, subject)
-        add_poll(new_poll)
+        poll_id = add_poll(new_poll)
+        new_poll.poll_id = poll_id
         if manage_users(context, update.message.from_user.id, GROUP_ID):
             send_polls(context, GROUP_ID, [new_poll])
             context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta Publicada!")
@@ -93,6 +94,18 @@ def simulacre(update, context):
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
+def impgunation(update,context):
+    message_parts = update.message.text.split()
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        impugnated_poll = poll_impugnation(int(message_parts[1]))
+        if impugnated_poll:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
+
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
+    pass
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -102,6 +115,8 @@ def main():
     test_handler = CommandHandler('test', test)
     stats_handler = CommandHandler('stats', stats)
     simulacre_handler = CommandHandler('simulacre', simulacre)
+    impugnation_handler = CommandHandler('impugnator', impgunation)
+
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
     dispatcher.add_handler(start_handler)
@@ -109,7 +124,7 @@ def main():
     dispatcher.add_handler(simulacre_handler)
     dispatcher.add_handler(poll_handler)
     dispatcher.add_handler(stats_handler)
-
+    dispatcher.add_handler(impugnation_handler)
     updater.start_polling()
     updater.idle()
 
