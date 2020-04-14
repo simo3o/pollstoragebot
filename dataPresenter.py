@@ -1,4 +1,5 @@
 from dataLayer import get_poll_by_subject
+from math import floor
 
 
 SIMUL_SCHEMA = {
@@ -43,7 +44,7 @@ def get_subject_poll(subject, poll_number):
 def get_simul(poll_number):
     simulacre = dict(SIMUL_SCHEMA)
     for subject, quantity in simulacre.items():
-        simulacre[subject] = (quantity*int(poll_number))/100
+        simulacre[subject] = floor((quantity*int(poll_number))/100)
     polls = get_poll_by_subject(simulacre)
     return polls
 

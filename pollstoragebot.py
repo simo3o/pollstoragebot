@@ -22,8 +22,12 @@ def manage_users(context, user_id, group_id):
 
 def send_polls(context, user_id, polls):
     for requested_poll in polls:
-        member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
-        context.bot.send_poll(user_id, member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
+        try:
+            member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+        except:
+            context.bot.send_message(chat_id=user_id, text='Hi ha hagut un aquesta enquesta')
+        else:
+            context.bot.send_poll(user_id, member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
                               allows_multiple_answers=False, options=requested_poll.answers,
                               correct_option_id=requested_poll.correct_answer)
 
@@ -70,6 +74,8 @@ def test(update, context):
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         requested_polls = get_subject_poll(message_parts[1], message_parts[2])
         send_polls(context, update.effective_user.id, requested_polls)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
@@ -84,6 +90,8 @@ def simulacre(update, context):
             send_polls(context, update.effective_user.id, requested_polls)
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
 def main():
