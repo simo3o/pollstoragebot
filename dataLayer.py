@@ -56,7 +56,7 @@ def get_poll_by_subject(request):
 
     except cnx.DataError as e:
         print('ERROR: ', e)
-        agregated_poll = [False]
+        agregated_poll.append(False)
     finally:
         cnx.close()
         return agregated_poll
