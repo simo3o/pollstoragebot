@@ -27,12 +27,16 @@ def send_polls(context, user_id, polls):
             context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
         else:
             try:
+                # Production
                 member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                # Testing
                 # True
             except:
                 context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
             else:
+                # Production
                 context.bot.send_poll(user_id, str(requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
+                # Testing
                 # context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
 
                                   allows_multiple_answers=False, options=requested_poll.answers,
@@ -104,15 +108,28 @@ def simulacre(update, context):
 def impgunation(update,context):
     message_parts = update.message.text.split()
     if manage_users(context, update.message.from_user.id, GROUP_ID):
-        impugnated_poll = poll_impugnation(int(message_parts[1]))
+        impugnated_poll = poll_impugnation(int(message_parts[1]), True)
         if impugnated_poll:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
-
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
     pass
+
+
+def restaurator(update, context):
+    message_parts = update.message.text.split()
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        impugnated_poll = poll_impugnation(int(message_parts[1]), False)
+        if impugnated_poll:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta restaurada')
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
+    pass
+
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -123,6 +140,7 @@ def main():
     stats_handler = CommandHandler('stats', stats)
     simulacre_handler = CommandHandler('simulacre', simulacre)
     impugnation_handler = CommandHandler('impugnator', impgunation)
+    restaurator_handler = CommandHandler('restaurator', restaurator)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -132,6 +150,7 @@ def main():
     dispatcher.add_handler(poll_handler)
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(impugnation_handler)
+    dispatcher.add_handler(restaurator_handler)
     updater.start_polling()
     updater.idle()
 

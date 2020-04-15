@@ -58,8 +58,8 @@ def check_user(user_name):
 def get_stats():
     pass
 
-def poll_impugnation(id):
-    result = poll_impugnation_db(True, id)
+def poll_impugnation(id, value):
+    result = poll_impugnation_db(value, id)
     return result
     pass
 def add_poll(poll):
