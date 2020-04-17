@@ -11,7 +11,7 @@ from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_pol
 import random
 
 
-def manage_users(context, user_id, group_id):
+def manage_users(context, user_id, group_id) -> bool:
     try:
         member_of_group = context.bot.get_chat_member(group_id, user_id)
     except BadRequest:
@@ -21,12 +21,14 @@ def manage_users(context, user_id, group_id):
     else:
         return True
 
+
 def randomize_answers(answers, correct_id):
     correct_answer = answers[correct_id]
     randomized_answers = answers
     random.shuffle(randomized_answers)
     new_correct_id = randomized_answers.index(correct_answer)
     return randomized_answers, new_correct_id
+
 
 def send_polls(context, user_id, polls):
     for requested_poll in polls:
@@ -41,15 +43,20 @@ def send_polls(context, user_id, polls):
             except:
                 context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
             else:
-                requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(requested_poll.correct_answer))
+                requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(
+                    requested_poll.correct_answer))
                 # Production
-                context.bot.send_poll(user_id, str(requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
+                context.bot.send_poll(user_id, str(
+                    requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
+                                      type='quiz', is_anonymous=True,
                                       allows_multiple_answers=False, options=requested_poll.answers,
                                       correct_option_id=requested_poll.correct_answer)
                 # Testing
-                # context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question, type='quiz', is_anonymous=True,
-                #                  allows_multiple_answers=False, options=requested_poll.answers,
-                #                  correct_option_id=requested_poll.correct_answer)
+                # context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
+                #                      type='quiz', is_anonymous=True,
+                #                      allows_multiple_answers=False, options=requested_poll.answers,
+                #                      correct_option_id=requested_poll.correct_answer)
+
 
 def start(update, context):
     print('Command' + str(update))
@@ -93,10 +100,11 @@ def test(update, context):
     message_parts = update.message.text.split()
     user_request = userDto(update.message.from_user.id, GROUP_ID)
     if manage_users(context, update.message.from_user.id, GROUP_ID):
-        requested_polls = get_subject_poll(message_parts[1], message_parts[2])
+        requested_polls = get_subject_poll(message_parts[1], int(message_parts[2]))
         send_polls(context, update.effective_user.id, requested_polls)
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+
 
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
@@ -106,7 +114,7 @@ def stats(update, context):
 def simulacre(update, context):
     message_parts = update.message.text.split()
     if manage_users(context, update.message.from_user.id, GROUP_ID):
-        requested_polls = get_simul(message_parts[1])
+        requested_polls = get_simul(int(message_parts[1]))
         if len(requested_polls) > 0:
             send_polls(context, update.effective_user.id, requested_polls)
         else:
@@ -114,7 +122,8 @@ def simulacre(update, context):
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
-def impgunation(update,context):
+
+def impgunation(update, context):
     message_parts = update.message.text.split()
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         impugnated_poll = poll_impugnation(int(message_parts[1]), True)

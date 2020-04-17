@@ -2,10 +2,12 @@ import pymysql
 from Dtos import PollDto, userDto
 import json
 from config import DB_CONFIG
+from typing import List
 
 
-def add_poll_db(new_poll):
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
+def add_poll_db(new_poll: PollDto):
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
 
     try:
         with cnx.cursor() as cursor:
@@ -16,32 +18,18 @@ def add_poll_db(new_poll):
                 json.dumps(new_poll.answers)))
             result_id = cursor.lastrowid
             cnx.commit()
-            return result_id
-
+    except cnx.DataError as e:
+        print('ERROR: ', e)
+        result_id = 0
     finally:
+        return result_id
         cnx.close()
     pass
 
 
-def get_poll(subjects, quantites):
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
-    agregated_poll = []
-    try:
-        for subject, quantity in zip(subjects, quantites):
-            with cnx.cursor() as cursor:
-                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`,`ID` `Subject` FROM `polls` WHERE " \
-                      "`Subject`=%s "
-                cursor.execute(sql, (subject,))
-                result = cursor.fetchone()
-                poll_result = PollDto(result[0], result[1], result[2], result[3], result[4], result[5], result[6])
-                agregated_poll.append(poll_result)
-    finally:
-        cnx.close()
-        return agregated_poll
-
-
-def get_poll_by_subject(request):
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
+def get_poll_by_subject(request) -> List[PollDto]:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
     agregated_poll = []
     try:
         for subject, quantity in request.items():
@@ -51,7 +39,8 @@ def get_poll_by_subject(request):
                 cursor.execute(sql, (subject))
                 results = cursor.fetchmany(quantity)
                 for result in results:
-                    poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6])
+                    poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
+                                          result[6])
                     agregated_poll.append(poll_result)
 
     except cnx.DataError as e:
@@ -63,18 +52,15 @@ def get_poll_by_subject(request):
 
 
 def get_stats():
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
 
     pass
 
-
-def check_user(user):
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
-
-    pass
 
 def poll_impugnation_db(impug_value, id):
-    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'), db='poll_bot')
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
     try:
         with cnx.cursor() as cursor:
             sql = "UPDATE `polls` SET `Impug`=%s WHERE `ID`=%s"

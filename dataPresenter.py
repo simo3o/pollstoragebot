@@ -1,7 +1,8 @@
 from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db
+from Dtos import PollDto
 from math import floor
+from typing import List
 import random
-
 
 SIMUL_SCHEMA = {
     'MECANICA': 7,
@@ -33,7 +34,8 @@ SIMUL_SCHEMA = {
     'FOREST': 1
 }
 
-def get_subject_poll(subject, poll_number):
+
+def get_subject_poll(subject: str, poll_number: int) -> List[PollDto]:
     request = {
         subject: int(poll_number)
     }
@@ -42,27 +44,24 @@ def get_subject_poll(subject, poll_number):
     polls = get_poll_by_subject(request)
     return polls
 
-def get_simul(poll_number):
+
+def get_simul(poll_number: int) -> List[PollDto]:
     simulacre = dict(SIMUL_SCHEMA)
     for subject, quantity in simulacre.items():
-        simulacre[subject] = floor((quantity*int(poll_number))/100)
+        simulacre[subject] = floor((quantity * poll_number) / 100)
     polls = get_poll_by_subject(simulacre)
     random.shuffle(polls)
     return polls
 
 
-def check_user(user_name):
-    pass
-
-
 def get_stats():
     pass
 
-def poll_impugnation(id, value):
+
+def poll_impugnation(id: int, value: bool) -> bool:
     result = poll_impugnation_db(value, id)
     return result
-    pass
-def add_poll(poll):
-    return add_poll_db(poll)
 
-    pass
+
+def add_poll(poll: PollDto) -> int:
+    return add_poll_db(poll)
