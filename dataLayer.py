@@ -3,9 +3,10 @@ from Dtos import PollDto, userDto
 import json
 from config import DB_CONFIG
 from typing import List
+from typing import Dict
 
 
-def add_poll_db(new_poll: PollDto):
+def add_poll_db(new_poll: PollDto) -> int:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
 
@@ -27,7 +28,7 @@ def add_poll_db(new_poll: PollDto):
     pass
 
 
-def get_poll_by_subject(request) -> List[PollDto]:
+def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
     agregated_poll = []
@@ -58,7 +59,7 @@ def get_stats():
     pass
 
 
-def poll_impugnation_db(impug_value, id):
+def poll_impugnation_db(impug_value: bool, pol_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
     try:
@@ -68,7 +69,7 @@ def poll_impugnation_db(impug_value, id):
                 query_value = 1
             else:
                 query_value = 0
-            cursor.execute(sql, (query_value, id))
+            cursor.execute(sql, (query_value, pol_id))
             cnx.commit()
             return True
 

@@ -58,8 +58,8 @@ def get_stats():
     pass
 
 
-def poll_impugnation(id: int, value: bool) -> bool:
-    result = poll_impugnation_db(value, id)
+def poll_impugnation(poll_id: int, value: bool) -> bool:
+    result = poll_impugnation_db(value, poll_id)
     return result
 
 

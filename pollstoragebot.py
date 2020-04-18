@@ -9,6 +9,7 @@ from config import TOKEN, GROUP_ID
 # from dataLayer import add_poll, get_poll, get_stats
 from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll
 import random
+from typing import List, Tuple
 
 
 def manage_users(context, user_id, group_id) -> bool:
@@ -22,7 +23,7 @@ def manage_users(context, user_id, group_id) -> bool:
         return True
 
 
-def randomize_answers(answers, correct_id):
+def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], int]:
     correct_answer = answers[correct_id]
     randomized_answers = answers
     random.shuffle(randomized_answers)
@@ -37,9 +38,9 @@ def send_polls(context, user_id, polls):
         else:
             try:
                 # Production
-                member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                 member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
                 # Testing
-                # True
+                #True
             except:
                 context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
             else:
@@ -50,7 +51,7 @@ def send_polls(context, user_id, polls):
                     requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
                                       type='quiz', is_anonymous=True,
                                       allows_multiple_answers=False, options=requested_poll.answers,
-                                      correct_option_id=requested_poll.correct_answer)
+                                     correct_option_id=requested_poll.correct_answer)
                 # Testing
                 # context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
                 #                      type='quiz', is_anonymous=True,
