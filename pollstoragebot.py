@@ -33,7 +33,7 @@ def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], i
 
 def send_polls(context, user_id, polls):
     for requested_poll in polls:
-        if not requested_poll:
+        if requested_poll.poll_id == -1:
             context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
         else:
             try:
