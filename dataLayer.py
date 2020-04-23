@@ -40,14 +40,16 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
                 cursor.execute(sql, (subject))
                 results = cursor.fetchmany(quantity)
                 for result in results:
-                    poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
-                                          result[6])
-                    agregated_poll.append(poll_result)
+                    try:
+                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6])
+                    except:
+                        result_poll = PollDto(0, '', '', 0, 0, '', -1)
+                    finally:
+                        agregated_poll.append(poll_result)
 
     except cnx.DataError as e:
         print('ERROR: ', e)
-        result_poll = PollDto(0, '', '', 0, 0, '', -1)
-        agregated_poll.append(result_poll)
+        return [PollDto(0, '', '', 0, 0, '', -1)]
     finally:
         cnx.close()
         return agregated_poll

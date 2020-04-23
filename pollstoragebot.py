@@ -82,7 +82,7 @@ def poll_received_handler(update, context):
             poll_answers.append(option.text)
 
         new_poll = PollDto(GROUP_ID, question, poll_answers,
-                           update.message.poll.correct_option_id, update.message.from_user.id, subject)
+                           int(update.message.poll.correct_option_id), update.message.from_user.id, subject)
         poll_id = add_poll(new_poll)
         new_poll.poll_id = poll_id
         if manage_users(context, update.message.from_user.id, GROUP_ID):
