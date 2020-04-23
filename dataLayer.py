@@ -55,11 +55,26 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
         return agregated_poll
 
 
-def get_stats():
+def get_stats_db(request: Dict[str, int]) -> Dict[str, int]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
+    result = []
+    try:
+        for subject, quantity in request.items():
+            try:
+                with cnx.cursor() as cursor:
+                    sql = "SELECT COUNT(*) FROM `polls` WHERE `Subject`=%s"
+                    cursor.execute(sql, subject)
+                    subject_total = cursor.fetchone()
+                    result.append((subject, subject_total[0]))
+            except:
+                result.append(subject, 0)
 
-    pass
+    except cnx.DataError as e:
+        print('ERROR: ', e)
+    finally:
+        cnx.close()
+        return result
 
 
 def poll_impugnation_db(impug_value: bool, pol_id: int) -> bool:

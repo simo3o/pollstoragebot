@@ -1,4 +1,4 @@
-from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db
+from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db
 from Dtos import PollDto
 from math import floor
 from typing import List
@@ -55,7 +55,7 @@ def get_simul(poll_number: int) -> List[PollDto]:
 
 
 def get_stats():
-    pass
+    return get_stats_db(SIMUL_SCHEMA)
 
 
 def poll_impugnation(poll_id: int, value: bool) -> bool:

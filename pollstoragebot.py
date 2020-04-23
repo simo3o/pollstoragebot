@@ -7,7 +7,7 @@ from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID
 # from dataLayer import add_poll, get_poll, get_stats
-from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll
+from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats
 import random
 from typing import List, Tuple
 
@@ -109,7 +109,9 @@ def test(update, context):
 
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
-    # TODO
+    stats = get_stats()
+    for subject in stats:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=subject[0] + ': ' + str(subject[1]) + ' enquestes')
 
 
 def simulacre(update, context):
