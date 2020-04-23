@@ -110,8 +110,11 @@ def test(update, context):
 def stats(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
     stats = get_stats()
+    message = ""
     for subject in stats:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=subject[0] + ': ' + str(subject[1]) + ' enquestes')
+        message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 def simulacre(update, context):
