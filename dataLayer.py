@@ -63,7 +63,7 @@ def get_stats_db(request: Dict[str, int]) -> Dict[str, int]:
         for subject, quantity in request.items():
             try:
                 with cnx.cursor() as cursor:
-                    sql = "SELECT COUNT(*) FROM `polls` WHERE `Subject`=%s"
+                    sql = "SELECT COUNT(*) FROM `polls` WHERE `Subject`=%s AND `Impug`=0 "
                     cursor.execute(sql, subject)
                     subject_total = cursor.fetchone()
                     result.append((subject, subject_total[0]))
