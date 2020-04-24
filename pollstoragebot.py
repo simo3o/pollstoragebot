@@ -5,7 +5,7 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
-from config import TOKEN, GROUP_ID, PRODUCTION_BUILD
+from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
 # from dataLayer import add_poll, get_poll, get_stats
 from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats
 import random
@@ -102,13 +102,14 @@ def poll_received_handler(update, context):
 
 
 def test(update, context):
-    message_parts = update.message.text.split()
-    user_request = userDto(update.message.from_user.id, GROUP_ID)
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
-        requested_polls = get_subject_poll(message_parts[1], int(message_parts[2]))
-        send_polls(context, update.effective_user.id, requested_polls)
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+    if update.effective_chat.type == 'private':
+        message_parts = update.message.text.split()
+        user_request = userDto(update.message.from_user.id, GROUP_ID)
+        if manage_users(context, update.message.from_user.id, GROUP_ID):
+            requested_polls = get_subject_poll(message_parts[1], int(message_parts[2]))
+            send_polls(context, update.effective_user.id, requested_polls)
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
 def stats(update, context):
@@ -125,41 +126,51 @@ def stats(update, context):
 
 
 def simulacre(update, context):
+    # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if (manage_users(context, update.message.from_user.id, GROUP_ID)) or () :
         requested_polls = get_simul(int(message_parts[1]))
         if len(requested_polls) > 0:
-            send_polls(context, update.effective_user.id, requested_polls)
+            if update.effective_chat.type == 'private':
+                send_polls(context, update.effective_user.id, requested_polls)
+            else:
+                if update.message.from_user.id in IMPUGNATORS:
+                    send_polls(context, GROUP_ID, requested_polls)
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
+
 def impgunation(update, context):
-    message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
-        impugnated_poll = poll_impugnation(int(message_parts[1]), True)
-        if impugnated_poll:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
+    if update.message.from_user.id in IMPUGNATORS:
+        message_parts = update.message.text.split()
+        if manage_users(context, update.message.from_user.id, GROUP_ID):
+            impugnated_poll = poll_impugnation(int(message_parts[1]), True)
+            if impugnated_poll:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
-    pass
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del gru d'impugnadors")
 
 
 def restaurator(update, context):
-    message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
-        impugnated_poll = poll_impugnation(int(message_parts[1]), False)
-        if impugnated_poll:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta restaurada')
+    if update.message.from_user.id in IMPUGNATORS:
+        message_parts = update.message.text.split()
+        if manage_users(context, update.message.from_user.id, GROUP_ID):
+            impugnated_poll = poll_impugnation(int(message_parts[1]), False)
+            if impugnated_poll:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta restaurada')
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
-    pass
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del gru d'impugnadors")
 
 
 def main():
