@@ -136,6 +136,10 @@ def simulacre(update, context):
             else:
                 if update.message.from_user.id in IMPUGNATORS:
                     send_polls(context, GROUP_ID, requested_polls)
+                else:
+                    context.bot.send_message(chat_id=update.effective_chat.id,
+                                             text='No digues bovades!!')
+
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
     else:
@@ -155,7 +159,7 @@ def impgunation(update, context):
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del gru d'impugnadors")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
 
 
 def restaurator(update, context):
@@ -170,7 +174,7 @@ def restaurator(update, context):
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del gru d'impugnadors")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
 
 
 def main():
