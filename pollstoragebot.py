@@ -5,7 +5,7 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
-from config import TOKEN, GROUP_ID
+from config import TOKEN, GROUP_ID, PRODUCTION_BUILD
 # from dataLayer import add_poll, get_poll, get_stats
 from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats
 import random
@@ -37,26 +37,30 @@ def send_polls(context, user_id, polls):
             context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
         else:
             try:
-                # Production
-                 member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
-                # Testing
-                #True
+                if PRODUCTION_BUILD:
+                    # On Production
+                    member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                else:
+                    # Testing
+                    True
             except:
                 context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
             else:
                 requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(
                     requested_poll.correct_answer))
                 # Production
-                context.bot.send_poll(user_id, str(
-                    requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
-                                      type='quiz', is_anonymous=True,
-                                      allows_multiple_answers=False, options=requested_poll.answers,
-                                     correct_option_id=requested_poll.correct_answer)
-                # Testing
-                # context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
-                #                      type='quiz', is_anonymous=True,
-                #                      allows_multiple_answers=False, options=requested_poll.answers,
-                #                      correct_option_id=requested_poll.correct_answer)
+                if PRODUCTION_BUILD:
+                    context.bot.send_poll(user_id, str(
+                        requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
+                                          type='quiz', is_anonymous=True,
+                                          allows_multiple_answers=False, options=requested_poll.answers,
+                                          correct_option_id=requested_poll.correct_answer)
+                else:
+                    # Testing
+                    context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
+                                          type='quiz', is_anonymous=True,
+                                          allows_multiple_answers=False, options=requested_poll.answers,
+                                          correct_option_id=requested_poll.correct_answer)
 
 
 def start(update, context):
@@ -108,12 +112,15 @@ def test(update, context):
 
 
 def stats(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text='STATS: ')
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
     stats = get_stats()
     message = ""
+    total_polls = 0
     for subject in stats:
         message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
+        total_polls += subject[1]
 
+    message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
