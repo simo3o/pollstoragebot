@@ -20,7 +20,10 @@ def manage_users(context, user_id, group_id) -> bool:
     except TimedOut:
         return False
     else:
-        return True
+        if member_of_group.is_member is not None:
+            return True
+        else:
+            return False
 
 
 def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], int]:
@@ -66,7 +69,7 @@ def send_polls(context, user_id, polls):
 def start(update, context):
     print('Command' + str(update))
     print('Group_ID: ', str(update.effective_chat.id), 'Group_Name: ', str(update.effective_chat.username))
-    # user_allowed = manage_users(context, update.message.from_user.id, GROUP_ID)
+    # user_allowed = manage_users(context, update.from_user.id, GROUP_ID)
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
     else:
