@@ -107,7 +107,14 @@ def test(update, context):
         user_request = userDto(update.message.from_user.id, GROUP_ID)
         if manage_users(context, update.message.from_user.id, GROUP_ID):
             requested_polls = get_subject_poll(message_parts[1], int(message_parts[2]))
-            send_polls(context, update.effective_user.id, requested_polls)
+            if update.effective_chat.type == 'private':
+                send_polls(context, update.effective_user.id, requested_polls)
+            else:
+                if update.message.from_user.id in IMPUGNATORS:
+                    send_polls(context, GROUP_ID, requested_polls)
+                else:
+                    context.bot.send_message(chat_id=update.effective_chat.id,
+                                             text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
@@ -128,7 +135,7 @@ def stats(update, context):
 def simulacre(update, context):
     # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
-    if (manage_users(context, update.message.from_user.id, GROUP_ID)) or () :
+    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
         requested_polls = get_simul(int(message_parts[1]))
         if len(requested_polls) > 0:
             if update.effective_chat.type == 'private':
@@ -138,7 +145,7 @@ def simulacre(update, context):
                     send_polls(context, GROUP_ID, requested_polls)
                 else:
                     context.bot.send_message(chat_id=update.effective_chat.id,
-                                             text='No digues bovades!!')
+                                             text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
 
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
