@@ -20,7 +20,7 @@ def manage_users(context, user_id, group_id) -> bool:
     except TimedOut:
         return False
     else:
-        if member_of_group.is_member is not None:
+        if member_of_group.status == 'administrator' or member_of_group.status == 'member':
             return True
         else:
             return False
