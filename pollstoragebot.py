@@ -66,7 +66,11 @@ def send_polls(context, user_id, polls):
 def start(update, context):
     print('Command' + str(update))
     print('Group_ID: ', str(update.effective_chat.id), 'Group_Name: ', str(update.effective_chat.username))
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
+    # user_allowed = manage_users(context, update.message.from_user.id, GROUP_ID)
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No tens permisos per fer res a aquest bot")
 
 
 def poll_received_handler(update, context):
