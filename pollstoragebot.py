@@ -10,6 +10,7 @@ from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
 from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats
 import random
 from typing import List, Tuple
+import time
 
 
 def manage_users(context, user_id, group_id) -> bool:
@@ -64,6 +65,8 @@ def send_polls(context, user_id, polls):
                                           type='quiz', is_anonymous=True,
                                           allows_multiple_answers=False, options=requested_poll.answers,
                                           correct_option_id=requested_poll.correct_answer)
+            finally:
+                time.sleep(0.2)
 
 
 def start(update, context):
