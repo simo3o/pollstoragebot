@@ -54,11 +54,14 @@ def send_polls(context, user_id, polls):
                     requested_poll.correct_answer))
                 # Production
                 if PRODUCTION_BUILD:
-                    context.bot.send_poll(user_id, str(
-                        requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
-                                          type='quiz', is_anonymous=True,
-                                          allows_multiple_answers=False, options=requested_poll.answers,
-                                          correct_option_id=requested_poll.correct_answer)
+                    try:
+                        context.bot.send_poll(user_id, str(
+                            requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
+                                              type='quiz', is_anonymous=True,
+                                              allows_multiple_answers=False, options=requested_poll.answers,
+                                              correct_option_id=requested_poll.correct_answer)
+                    except BadRequest:
+                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
                 else:
                     # Testing
                     context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
