@@ -138,16 +138,17 @@ def test(update, context):
 
 
 def stats(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
-    stats = get_stats()
-    message = ""
-    total_polls = 0
-    for subject in stats:
-        message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
-        total_polls += subject[1]
+    if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
+        stats = get_stats()
+        message = ""
+        total_polls = 0
+        for subject in stats:
+            message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
+            total_polls += subject[1]
 
-    message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+        message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
+        context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 def simulacre(update, context):
