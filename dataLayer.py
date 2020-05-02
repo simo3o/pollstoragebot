@@ -12,11 +12,11 @@ def add_poll_db(new_poll: PollDto) -> int:
 
     try:
         with cnx.cursor() as cursor:
-            sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
-                  "%s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
+                  "%s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (
                 new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
-                json.dumps(new_poll.answers)))
+                json.dumps(new_poll.answers), new_poll.explanation))
             result_id = cursor.lastrowid
             cnx.commit()
     except cnx.DataError as e:
@@ -35,15 +35,15 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
     try:
         for subject, quantity in request.items():
             with cnx.cursor() as cursor:
-                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `ID`  FROM `polls` WHERE " \
+                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` WHERE " \
                       "`Subject`=%s AND `Impug`=0 ORDER BY RAND()"
                 cursor.execute(sql, (subject))
                 results = cursor.fetchmany(quantity)
                 for result in results:
                     try:
-                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6])
+                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
                     except:
-                        result_poll = PollDto(0, '', '', 0, 0, '', -1)
+                        result_poll = PollDto(0, '', '', 0, 0, '', '',  -1)
                     finally:
                         agregated_poll.append(poll_result)
 

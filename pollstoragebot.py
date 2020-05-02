@@ -38,7 +38,8 @@ def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], i
 def send_polls(context, user_id, polls):
     for requested_poll in polls:
         if requested_poll.poll_id == -1:
-            context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
+            context.bot.send_message(chat_id=user_id,
+                                     text='Hi ha hagut un problema la enquesta d"ID: {}'.format(requested_poll.poll_id))
         else:
             try:
                 if PRODUCTION_BUILD:
@@ -48,7 +49,8 @@ def send_polls(context, user_id, polls):
                     # Testing
                     True
             except:
-                context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta')
+                context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {}'.format(
+                    requested_poll.poll_id))
             else:
                 requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(
                     requested_poll.correct_answer))
@@ -56,19 +58,20 @@ def send_polls(context, user_id, polls):
                 if PRODUCTION_BUILD:
                     try:
                         context.bot.send_poll(user_id, str(
-                            requested_poll.poll_id) + '- ' + member_username.user.full_name + ': ' + requested_poll.question,
+                            requested_poll.poll_id) + '-' + member_username.user.full_name + ':' + requested_poll.question,
                                               type='quiz', is_anonymous=True,
                                               allows_multiple_answers=False, options=requested_poll.answers,
-                                              correct_option_id=requested_poll.correct_answer)
+                                              correct_option_id=requested_poll.correct_answer, explanation=requested_poll.explanation)
                     except BadRequest:
-                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema amb aquesta enquesta {}'.format(requested_poll.poll_id))
+                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {}'.format(requested_poll.poll_id))
                 else:
                     # Testing
-                    context.bot.send_poll(user_id, str(requested_poll.poll_id) + ': ' + requested_poll.question,
+                    context.bot.send_poll(user_id, str(requested_poll.poll_id) + ':' + requested_poll.question,
                                           type='quiz', is_anonymous=True,
                                           allows_multiple_answers=False, options=requested_poll.answers,
-                                          correct_option_id=requested_poll.correct_answer)
+                                          correct_option_id=requested_poll.correct_answer, explanation=requested_poll.explanation)
             finally:
+                # To Avoid Telegram Flood exception on large requests
                 time.sleep(0.2)
 
 
@@ -99,7 +102,7 @@ def poll_received_handler(update, context):
             poll_answers.append(option.text)
 
         new_poll = PollDto(GROUP_ID, question, poll_answers,
-                           int(update.message.poll.correct_option_id), update.message.from_user.id, subject)
+                           int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation)
         poll_id = add_poll(new_poll)
         new_poll.poll_id = poll_id
         if manage_users(context, update.message.from_user.id, GROUP_ID):

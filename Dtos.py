@@ -1,5 +1,5 @@
 class PollDto:
-    def __init__(self, chat_id=0, question='', answers='', correct_answer=0, user_id=0, subject='', poll_id=0):
+    def __init__(self, chat_id=0, question='', answers='', correct_answer=0, user_id=0, subject='', explanation='', poll_id=0):
         self.subject = subject
         self.question = question
         self.chat_id = chat_id
@@ -7,6 +7,7 @@ class PollDto:
         self.user_id = user_id
         self.answers = answers
         self.poll_id = poll_id
+        self.explanation = explanation
 
 
 class userDto:
