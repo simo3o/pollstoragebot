@@ -107,7 +107,7 @@ def poll_received_handler(update, context):
         new_poll.poll_id = poll_id
         if manage_users(context, update.message.from_user.id, GROUP_ID):
             send_polls(context, GROUP_ID, [new_poll])
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta Publicada!")
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta {} Publicada!".format(new_poll.poll_id))
             print('Poll added')
         else:
             print("An exception occurred")

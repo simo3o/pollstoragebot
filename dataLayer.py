@@ -12,11 +12,18 @@ def add_poll_db(new_poll: PollDto) -> int:
 
     try:
         with cnx.cursor() as cursor:
-            sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
-                  "%s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (
-                new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
-                json.dumps(new_poll.answers), new_poll.explanation))
+            if new_poll.explanation is not None:
+                sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
+                      "%s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (
+                    new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                    json.dumps(new_poll.answers), new_poll.explanation))
+            else:
+                sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
+                      "%s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (
+                    new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                    json.dumps(new_poll.answers)))
             result_id = cursor.lastrowid
             cnx.commit()
     except cnx.DataError as e:
