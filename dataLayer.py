@@ -96,3 +96,24 @@ def poll_impugnation_db(impug_value: bool, pol_id: int) -> bool:
         return False
     finally:
         cnx.close()
+
+
+def get_single_poll_db(poll_id: int) -> PollDto:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    try:
+        with cnx.cursor() as cursor:
+            sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` WHERE " \
+                  "`ID`=%s "
+            cursor.execute(sql, poll_id)
+            result = cursor.fetchone()
+            poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
+                                  result[6], result[7])
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+        poll_result = [PollDto(0, '', '', 0, 0, '', -1)]
+    finally:
+        return poll_result
+        cnx.close()
+
+

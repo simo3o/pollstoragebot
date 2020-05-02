@@ -1,4 +1,4 @@
-from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db
+from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db
 from Dtos import PollDto
 from math import floor
 from typing import List
@@ -65,3 +65,6 @@ def poll_impugnation(poll_id: int, value: bool) -> bool:
 
 def add_poll(poll: PollDto) -> int:
     return add_poll_db(poll)
+
+def get_single_poll(poll_id: int) -> PollDto:
+    return get_single_poll_db(poll_id)

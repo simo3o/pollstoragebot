@@ -7,7 +7,7 @@ from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
 # from dataLayer import add_poll, get_poll, get_stats
-from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats
+from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll
 import random
 from typing import List, Tuple
 import time
@@ -200,6 +200,15 @@ def restaurator(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
 
 
+def enquesta(update, context):
+    if update.message.from_user.id in IMPUGNATORS:
+        message_parts = update.message.text.split()
+        requested_poll = [get_single_poll(int(message_parts[1]))]
+        send_polls(context, update.message.from_user.id, requested_poll)
+
+
+
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     updater = Updater(token=TOKEN, use_context=True)
@@ -210,6 +219,7 @@ def main():
     simulacre_handler = CommandHandler('simulacre', simulacre)
     impugnation_handler = CommandHandler('impugnator', impgunation)
     restaurator_handler = CommandHandler('restaurator', restaurator)
+    single_poll_handler = CommandHandler('enquesta', enquesta)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -220,6 +230,7 @@ def main():
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(impugnation_handler)
     dispatcher.add_handler(restaurator_handler)
+    dispatcher.add_handler(single_poll_handler)
     updater.start_polling()
     updater.idle()
 
