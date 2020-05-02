@@ -114,6 +114,8 @@ def poll_received_handler(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text="No eres del grup necessari")
 
     else:
+        if update.message.chat.type == 'private':
+            context.bot.send_message(chat_id=update.effective_chat.id, text="L'enquesta no era Concurs")
         print('Poll not added')
 
 
