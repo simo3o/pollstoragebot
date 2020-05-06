@@ -7,7 +7,7 @@ from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
 # from dataLayer import add_poll, get_poll, get_stats
-from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll
+from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents
 import random
 from typing import List, Tuple
 import time
@@ -44,7 +44,10 @@ def send_polls(context, user_id, polls):
             try:
                 if PRODUCTION_BUILD:
                     # On Production
-                    member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                    try:
+                        member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                    except BadRequest:
+                        member_username.user.full_name = 'Error'
                 else:
                     # Testing
                     True
@@ -63,7 +66,7 @@ def send_polls(context, user_id, polls):
                                               allows_multiple_answers=False, options=requested_poll.answers,
                                               correct_option_id=requested_poll.correct_answer, explanation=requested_poll.explanation)
                     except BadRequest:
-                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {}'.format(requested_poll.poll_id))
+                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {} feta per {}'.format(requested_poll.poll_id, member_username.user.full_name))
                 else:
                     # Testing
                     context.bot.send_poll(user_id, str(requested_poll.poll_id) + ':' + requested_poll.question,
@@ -209,7 +212,29 @@ def enquesta(update, context):
         requested_poll = [get_single_poll(int(message_parts[1]))]
         send_polls(context, update.message.from_user.id, requested_poll)
 
+def pendents (update, context):
+    message_parts = update.message.text.split()
+    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+        if len(message_parts) < 3:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Digues un número final')
+        else:
+            first_id = int(message_parts[1])
+            last_id = int(message_parts[2])
+            polls_pendents = get_pendents(first_id, last_id)
+            if len(polls_pendents) > 0:
+                if update.effective_chat.type == 'private':
+                    send_polls(context, update.effective_user.id, polls_pendents)
+                else:
+                    if update.message.from_user.id in IMPUGNATORS:
+                        send_polls(context, GROUP_ID, polls_pendents)
+                    else:
+                        context.bot.send_message(chat_id=update.effective_chat.id,
+                                                 text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
 
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
+    else:
+         context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
 
 
 def main():
@@ -223,6 +248,7 @@ def main():
     impugnation_handler = CommandHandler('impugnator', impgunation)
     restaurator_handler = CommandHandler('restaurator', restaurator)
     single_poll_handler = CommandHandler('enquesta', enquesta)
+    pendents_handler = CommandHandler('pendents', pendents)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -234,6 +260,7 @@ def main():
     dispatcher.add_handler(impugnation_handler)
     dispatcher.add_handler(restaurator_handler)
     dispatcher.add_handler(single_poll_handler)
+    dispatcher.add_handler(pendents_handler)
     updater.start_polling()
     updater.idle()
 

@@ -50,13 +50,40 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
                     try:
                         poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
                     except:
-                        result_poll = PollDto(0, '', '', 0, 0, '', '',  -1)
+                        poll_result = PollDto(0, '', '', 0, 0, '', '',  -1)
                     finally:
                         agregated_poll.append(poll_result)
 
     except cnx.DataError as e:
         print('ERROR: ', e)
         return [PollDto(0, '', '', 0, 0, '', -1)]
+    finally:
+        cnx.close()
+        return agregated_poll
+
+
+
+def get_pendents_db(first_id:int, last_id:int) -> List[PollDto]:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    agregated_poll = []
+    try:
+        with cnx.cursor() as cursor:
+            sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` LIMIT " \
+                  "%s , %s "
+            cursor.execute(sql, (int(first_id), (int(last_id)-int(first_id))))
+            results = cursor.fetchall()
+            for result in results:
+                try:
+                    poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
+                                          result[6], result[7])
+                except:
+                    poll_result = PollDto(0, '', '', 0, 0, '', '', -1)
+                finally:
+                    agregated_poll.append(poll_result)
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+        agregated_poll = [PollDto(0, '', '', 0, 0, '', -1)]
     finally:
         cnx.close()
         return agregated_poll
