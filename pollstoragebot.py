@@ -127,7 +127,13 @@ def test(update, context):
         message_parts = update.message.text.split()
         user_request = userDto(update.message.from_user.id, GROUP_ID)
         if manage_users(context, update.message.from_user.id, GROUP_ID):
-            requested_polls = get_subject_poll(message_parts[1], int(message_parts[2]))
+            try:
+                total_test = int(message_parts[2])
+            except (ValueError, TypeError):
+                total_test = 0
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+
+            requested_polls = get_subject_poll(message_parts[1], total_test)
             if update.effective_chat.type == 'private':
                 send_polls(context, update.effective_user.id, requested_polls)
             else:
@@ -158,7 +164,13 @@ def simulacre(update, context):
     # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
     if (manage_users(context, update.message.from_user.id, GROUP_ID)):
-        requested_polls = get_simul(int(message_parts[1]))
+        try:
+            total_sim = int(message_parts[1])
+        except (ValueError, TypeError):
+            total_sim = 0
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+
+        requested_polls = get_simul(total_sim)
         if len(requested_polls) > 0:
             if update.effective_chat.type == 'private':
                 send_polls(context, update.effective_user.id, requested_polls)
@@ -218,8 +230,14 @@ def pendents (update, context):
         if len(message_parts) < 3:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Digues un número final')
         else:
-            first_id = int(message_parts[1])
-            last_id = int(message_parts[2])
+            try:
+                first_id = int(message_parts[1])
+                last_id = int(message_parts[2])
+            except (ValueError, TypeError):
+                first_id = 0
+                last_id = 0
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+
             polls_pendents = get_pendents(first_id, last_id)
             if len(polls_pendents) > 0:
                 if update.effective_chat.type == 'private':
