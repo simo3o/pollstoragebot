@@ -93,28 +93,28 @@ def poll_received_handler(update, context):
     if update.message.poll.type == 'quiz' and update.message.chat.type == 'private' and update.message.poll.correct_option_id is not None:
         question = update.message.poll.question
         question_splitted = question.split(':', 1)
-        if len(question_splitted) > 1:
-            question = question_splitted[1]
-            subject = question_splitted[0].upper()
-        else:
+        if len(question_splitted) < 2:
             subject = 'none'
             question = update.message.poll.question
-
-        poll_answers = []
-        for option in update.message.poll.options:
-            poll_answers.append(option.text)
-
-        new_poll = PollDto(GROUP_ID, question, poll_answers,
-                           int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation)
-        poll_id = add_poll(new_poll)
-        new_poll.poll_id = poll_id
-        if manage_users(context, update.message.from_user.id, GROUP_ID):
-            send_polls(context, GROUP_ID, [new_poll])
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta {} Publicada!".format(new_poll.poll_id))
-            print('Poll added')
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta sense el format correcte")
         else:
-            print("An exception occurred")
-            context.bot.send_message(chat_id=update.effective_chat.id, text="No eres del grup necessari")
+            question = question_splitted[1]
+            subject = question_splitted[0].upper()
+            poll_answers = []
+            for option in update.message.poll.options:
+                poll_answers.append(option.text)
+
+            new_poll = PollDto(GROUP_ID, question, poll_answers,
+                               int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation)
+            poll_id = add_poll(new_poll)
+            new_poll.poll_id = poll_id
+            if manage_users(context, update.message.from_user.id, GROUP_ID):
+                send_polls(context, GROUP_ID, [new_poll])
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta {} Publicada!".format(new_poll.poll_id))
+                print('Poll added')
+            else:
+                print("An exception occurred")
+                context.bot.send_message(chat_id=update.effective_chat.id, text="No eres del grup necessari")
 
     else:
         if update.message.chat.type == 'private':
@@ -123,36 +123,35 @@ def poll_received_handler(update, context):
 
 
 def test(update, context):
-    if update.effective_chat.type == 'private':
-        message_parts = update.message.text.split()
-        user_request = userDto(update.message.from_user.id, GROUP_ID)
-        if manage_users(context, update.message.from_user.id, GROUP_ID):
-            try:
-                total_test = int(message_parts[2])
-            except (ValueError, TypeError):
-                total_test = 0
-                context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+    # if update.effective_chat.type == 'private':
+    message_parts = update.message.text.split()
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        try:
+            total_test = int(message_parts[2])
+        except (ValueError, TypeError):
+            total_test = 0
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
 
-            requested_polls = get_subject_poll(message_parts[1], total_test)
-            if update.effective_chat.type == 'private':
-                send_polls(context, update.effective_user.id, requested_polls)
-            else:
-                if update.message.from_user.id in IMPUGNATORS:
-                    send_polls(context, GROUP_ID, requested_polls)
-                else:
-                    context.bot.send_message(chat_id=update.effective_chat.id,
-                                             text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+        requested_polls = get_subject_poll(message_parts[1], total_test)
+        if update.effective_chat.type == 'private':
+            send_polls(context, update.effective_user.id, requested_polls)
         else:
+            if update.message.from_user.id in IMPUGNATORS:
+                send_polls(context, GROUP_ID, requested_polls)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+    else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
 def stats(update, context):
     if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
-        stats = get_stats()
+        stats_result = get_stats()
         message = ""
         total_polls = 0
-        for subject in stats:
+        for subject in stats_result:
             message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
             total_polls += subject[1]
 
@@ -192,7 +191,12 @@ def impgunation(update, context):
     if update.message.from_user.id in IMPUGNATORS:
         message_parts = update.message.text.split()
         if manage_users(context, update.message.from_user.id, GROUP_ID):
-            impugnated_poll = poll_impugnation(int(message_parts[1]), True)
+            try:
+                impugnate_poll = int(message_parts[1])
+            except (ValueError, TypeError):
+                impugnate_poll = 0
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+            impugnated_poll = poll_impugnation(impugnate_poll, True)
             if impugnated_poll:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
             else:
@@ -207,7 +211,12 @@ def restaurator(update, context):
     if update.message.from_user.id in IMPUGNATORS:
         message_parts = update.message.text.split()
         if manage_users(context, update.message.from_user.id, GROUP_ID):
-            impugnated_poll = poll_impugnation(int(message_parts[1]), False)
+            try:
+                restaurate_poll = int(message_parts[1])
+            except (ValueError, TypeError):
+                restaurate_poll = 0
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+            impugnated_poll = poll_impugnation(restaurate_poll, False)
             if impugnated_poll:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta restaurada')
             else:
@@ -252,7 +261,7 @@ def pendents (update, context):
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
     else:
-         context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
+         context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup correcte")
 
 
 def main():
