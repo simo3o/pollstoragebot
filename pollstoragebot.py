@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import logging
+
 from telegram.error import TimedOut, BadRequest
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
-# from dataLayer import add_poll, get_poll, get_stats
 from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents
 import random
 from typing import List, Tuple
@@ -21,10 +21,13 @@ def manage_users(context, user_id, group_id) -> bool:
     except TimedOut:
         return False
     else:
-        if member_of_group.status == 'administrator' or member_of_group.status == 'member' or member_of_group.status == 'creator':
-            return True
+        if PRODUCTION_BUILD:
+            if member_of_group.status == 'administrator' or member_of_group.status == 'member' or member_of_group.status == 'creator':
+                return True
+            else:
+                return False
         else:
-            return False
+            return True
 
 
 def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], int]:
@@ -76,6 +79,7 @@ def send_polls(context, user_id, polls):
             finally:
                 # To Avoid Telegram Flood exception on large requests
                 time.sleep(0.2)
+
 
 
 def start(update, context):
@@ -154,7 +158,6 @@ def stats(update, context):
         for subject in stats_result:
             message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
             total_polls += subject[1]
-
         message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
@@ -198,7 +201,7 @@ def impgunation(update, context):
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
             impugnated_poll = poll_impugnation(impugnate_poll, True)
             if impugnated_poll:
-                context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta impugnada')
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta {} impugnada!'.format(str(impugnate_poll)))
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
