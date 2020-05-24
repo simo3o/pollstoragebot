@@ -102,8 +102,8 @@ def poll_received_handler(update, context):
             question = update.message.poll.question
             context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta sense el format correcte")
         else:
-            question = question_splitted[1]
-            subject = question_splitted[0].upper()
+            question = question_splitted[1].strip()
+            subject = question_splitted[0].upper().strip()
             poll_answers = []
             for option in update.message.poll.options:
                 poll_answers.append(option.text)
