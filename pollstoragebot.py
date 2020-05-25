@@ -7,7 +7,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
-from dataPresenter import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents
+from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents
 import random
 from typing import List, Tuple
 import time
@@ -136,7 +136,7 @@ def test(update, context):
             total_test = 0
             context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
 
-        requested_polls = get_subject_poll(message_parts[1], total_test)
+        requested_polls = get_subject_poll(message_parts[1].strip(), total_test)
         if update.effective_chat.type == 'private':
             send_polls(context, update.effective_user.id, requested_polls)
         else:

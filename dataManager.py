@@ -1,8 +1,10 @@
-from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db, get_pendents_db
-from Dtos import PollDto
+import random
 from math import floor
 from typing import List
-import random
+
+from Dtos import PollDto
+from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db, \
+    get_pendents_db
 
 SIMUL_SCHEMA = {
     'MECANICA': 7,
@@ -66,9 +68,11 @@ def poll_impugnation(poll_id: int, value: bool) -> bool:
 def add_poll(poll: PollDto) -> int:
     return add_poll_db(poll)
 
-def get_pendents(first_id: int, last_id:int) -> List[PollDto]:
+
+def get_pendents(first_id: int, last_id: int) -> List[PollDto]:
     return get_pendents_db(first_id, last_id)
     pass
+
 
 def get_single_poll(poll_id: int) -> PollDto:
     return get_single_poll_db(poll_id)
