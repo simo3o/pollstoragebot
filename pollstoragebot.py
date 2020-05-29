@@ -234,7 +234,7 @@ def enquesta(update, context):
     if update.message.from_user.id in IMPUGNATORS:
         message_parts = update.message.text.split()
         requested_poll = [get_single_poll(int(message_parts[1]))]
-        send_polls(context, update.message.from_user.id, requested_poll)
+        send_polls(context, update.effective_chat.id, requested_poll)
 
 def pendents (update, context):
     message_parts = update.message.text.split()
