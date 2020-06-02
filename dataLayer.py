@@ -9,30 +9,45 @@ from typing import Dict
 def add_poll_db(new_poll: PollDto) -> int:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
-
+    result_id = 0
     try:
         with cnx.cursor() as cursor:
             if new_poll.explanation is not None:
-                sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
-                      "%s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(sql, (
-                    new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
-                    json.dumps(new_poll.answers), new_poll.explanation))
+                if new_poll.group_test is not None:
+
+                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`, `Group_test`) VALUES (" \
+                          "%s, %s, %s, %s, %s, %s, %s, %s)"
+                    cursor.execute(sql, (
+                        new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                        json.dumps(new_poll.answers), new_poll.explanation, new_poll.group_test))
+                else:
+                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
+                          "%s, %s, %s, %s, %s, %s, %s)"
+                    cursor.execute(sql, (
+                        new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                        json.dumps(new_poll.answers), new_poll.explanation))
+
             else:
-                sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
-                      "%s, %s, %s, %s, %s, %s)"
-                cursor.execute(sql, (
-                    new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
-                    json.dumps(new_poll.answers)))
+                if new_poll.group_test is not None:
+                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Group_test`) VALUES (" \
+                          "%s, %s, %s, %s, %s, %s, %s)"
+                    cursor.execute(sql, (
+                        new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                        json.dumps(new_poll.answers), new_poll.group_test))
+                else:
+                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
+                          "%s, %s, %s, %s, %s, %s)"
+                    cursor.execute(sql, (
+                        new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
+                        json.dumps(new_poll.answers)))
             result_id = cursor.lastrowid
             cnx.commit()
     except cnx.DataError as e:
         print('ERROR: ', e)
         result_id = 0
     finally:
-        return result_id
         cnx.close()
-    pass
+        return result_id
 
 
 def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
@@ -61,6 +76,32 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
         cnx.close()
         return agregated_poll
 
+
+def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    agregated_poll = []
+    try:
+        for subject, quantity in request.items():
+            with cnx.cursor() as cursor:
+                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls_v2` WHERE " \
+                      "`Group_test`=%s AND `Impug`=0 ORDER BY RAND()"
+                cursor.execute(sql, (subject))
+                results = cursor.fetchmany(quantity)
+                for result in results:
+                    try:
+                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
+                    except:
+                        poll_result = PollDto(0, '', '', 0, 0, '', '',  -1)
+                    finally:
+                        agregated_poll.append(poll_result)
+
+    except cnx.DataError as e:
+        print('ERROR: ', e)
+        return [PollDto(0, '', '', 0, 0, '', -1)]
+    finally:
+        cnx.close()
+        return agregated_poll
 
 
 def get_pendents_db(first_id:int, last_id:int) -> List[PollDto]:
@@ -152,7 +193,7 @@ def get_single_poll_db(poll_id: int) -> PollDto:
         print('ERROR: ' + e)
         poll_result = [PollDto(0, '', '', 0, 0, '', -1)]
     finally:
-        return poll_result
         cnx.close()
+        return poll_result
 
 

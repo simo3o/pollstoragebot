@@ -4,7 +4,7 @@ from typing import List
 
 from Dtos import PollDto
 from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db, \
-    get_pendents_db
+    get_pendents_db, get_poll_by_group
 
 SIMUL_SCHEMA = {
     'MECANICA': 7,
@@ -46,6 +46,13 @@ def get_subject_poll(subject: str, poll_number: int) -> List[PollDto]:
     polls = get_poll_by_subject(request)
     return polls
 
+def get_group_test(subject: str, poll_number: int) -> List[PollDto]:
+    request = {
+        subject: int(poll_number)
+    }
+    polls = get_poll_by_group(request)
+    return polls
+
 
 def get_simul(poll_number: int) -> List[PollDto]:
     simulacre = dict(SIMUL_SCHEMA)
@@ -71,8 +78,7 @@ def add_poll(poll: PollDto) -> int:
 
 def get_pendents(first_id: int, last_id: int) -> List[PollDto]:
     return get_pendents_db(first_id, last_id)
-    pass
-
+    
 
 def get_single_poll(poll_id: int) -> PollDto:
     return get_single_poll_db(poll_id)

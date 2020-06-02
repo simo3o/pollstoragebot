@@ -6,8 +6,8 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
 from Dtos import PollDto, userDto
-from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS
-from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents
+from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP
+from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents, get_group_test
 import random
 from typing import List, Tuple
 import time
@@ -104,12 +104,18 @@ def poll_received_handler(update, context):
         else:
             question = question_splitted[1].strip()
             subject = question_splitted[0].upper().strip()
+            if subject[-1] in TEST_GROUP:
+                group_test = TEST_GROUP.get(subject[-1])
+                subject = subject[:-1]
+            else:
+                group_test = None
+            
             poll_answers = []
             for option in update.message.poll.options:
                 poll_answers.append(option.text)
 
             new_poll = PollDto(GROUP_ID, question, poll_answers,
-                               int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation)
+                               int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation, group_test)
             poll_id = add_poll(new_poll)
             new_poll.poll_id = poll_id
             if manage_users(context, update.message.from_user.id, GROUP_ID):
@@ -149,6 +155,29 @@ def test(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
+def recull(update, context):
+    # if update.effective_chat.type == 'private':
+    message_parts = update.message.text.split()
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        try:
+            total_test = int(message_parts[2])
+        except (ValueError, TypeError):
+            total_test = 0
+            context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
+
+        requested_polls = get_group_test(message_parts[1].strip(), total_test)
+        if update.effective_chat.type == 'private':
+            send_polls(context, update.effective_user.id, requested_polls)
+        else:
+            if update.message.from_user.id in IMPUGNATORS:
+                send_polls(context, GROUP_ID, requested_polls)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+    else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+
+
 def stats(update, context):
     if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
@@ -160,6 +189,15 @@ def stats(update, context):
             total_polls += subject[1]
         message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
+def xulla(update, context):
+        if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+            if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+                message = ''
+                for sim, name in TEST_GROUP.items():
+                    message += "\n {0} : {1} ".format(sim, name)
+                context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 def simulacre(update, context):
@@ -279,6 +317,8 @@ def main():
     restaurator_handler = CommandHandler('restaurator', restaurator)
     single_poll_handler = CommandHandler('enquesta', enquesta)
     pendents_handler = CommandHandler('pendents', pendents)
+    xulla_handler = CommandHandler('xulla', xulla)
+    recull_handler = CommandHandler('recull', recull)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -291,6 +331,8 @@ def main():
     dispatcher.add_handler(restaurator_handler)
     dispatcher.add_handler(single_poll_handler)
     dispatcher.add_handler(pendents_handler)
+    dispatcher.add_handler(xulla_handler)
+    dispatcher.add_handler(recull_handler)
     updater.start_polling()
     updater.idle()
 
