@@ -15,13 +15,13 @@ def add_poll_db(new_poll: PollDto) -> int:
             if new_poll.explanation is not None:
                 if new_poll.group_test is not None:
 
-                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`, `Group_test`) VALUES (" \
+                    sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`, `Group_test`) VALUES (" \
                           "%s, %s, %s, %s, %s, %s, %s, %s)"
                     cursor.execute(sql, (
                         new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
                         json.dumps(new_poll.answers), new_poll.explanation, new_poll.group_test))
                 else:
-                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
+                    sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Explanation`) VALUES (" \
                           "%s, %s, %s, %s, %s, %s, %s)"
                     cursor.execute(sql, (
                         new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
@@ -29,13 +29,13 @@ def add_poll_db(new_poll: PollDto) -> int:
 
             else:
                 if new_poll.group_test is not None:
-                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Group_test`) VALUES (" \
+                    sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`, `Group_test`) VALUES (" \
                           "%s, %s, %s, %s, %s, %s, %s)"
                     cursor.execute(sql, (
                         new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
                         json.dumps(new_poll.answers), new_poll.group_test))
                 else:
-                    sql = "INSERT INTO `polls_v2` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
+                    sql = "INSERT INTO `polls` (`Subject`, `Question`,`Chat_Id`,`Correct_answer`,`User_Id`,`Answers`) VALUES (" \
                           "%s, %s, %s, %s, %s, %s)"
                     cursor.execute(sql, (
                         new_poll.subject, new_poll.question, new_poll.chat_id, new_poll.correct_answer, new_poll.user_id,
@@ -84,7 +84,7 @@ def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
     try:
         for subject, quantity in request.items():
             with cnx.cursor() as cursor:
-                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls_v2` WHERE " \
+                sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` WHERE " \
                       "`Group_test`=%s AND `Impug`=0 ORDER BY RAND()"
                 cursor.execute(sql, (subject))
                 results = cursor.fetchmany(quantity)
