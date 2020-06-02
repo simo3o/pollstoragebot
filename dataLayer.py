@@ -63,7 +63,7 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
                 results = cursor.fetchmany(quantity)
                 for result in results:
                     try:
-                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
+                        poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
                     except:
                         poll_result = PollDto(0, '', '', 0, 0, '', '',  -1)
                     finally:
@@ -90,7 +90,8 @@ def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
                 results = cursor.fetchmany(quantity)
                 for result in results:
                     try:
-                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
+                        poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
+#                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
                     except:
                         poll_result = PollDto(0, '', '', 0, 0, '', '',  -1)
                     finally:
@@ -119,8 +120,8 @@ def get_pendents_db(first_id:int, last_id:int) -> List[PollDto]:
             for result in results:
                 if result[8] == 0:
                     try:
-                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
-                                              result[6], result[7])
+                        poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
+#                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
                     except:
                         poll_result = PollDto(0, '', '', 0, 0, '', '', -1)
                     finally:
@@ -187,8 +188,9 @@ def get_single_poll_db(poll_id: int) -> PollDto:
                   "`ID`=%s "
             cursor.execute(sql, poll_id)
             result = cursor.fetchone()
-            poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
-                                  result[6], result[7])
+            poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
+#            poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5],
+ #                                 result[6], result[7])
     except cnx.DataError as e:
         print('ERROR: ' + e)
         poll_result = [PollDto(0, '', '', 0, 0, '', -1)]
