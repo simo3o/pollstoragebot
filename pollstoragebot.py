@@ -114,8 +114,8 @@ def poll_received_handler(update, context):
             for option in update.message.poll.options:
                 poll_answers.append(option.text)
 
-            new_poll = PollDto(GROUP_ID, question, poll_answers,
-                               int(update.message.poll.correct_option_id), update.message.from_user.id, subject, update.message.poll.explanation, group_test)
+            new_poll = PollDto(chat_id=GROUP_ID, question=question, answers=poll_answers,
+                               correct_answer=int(update.message.poll.correct_option_id), user_id=update.message.from_user.id, subject=subject, explanation=update.message.poll.explanation, group_test=group_test)
             poll_id = add_poll(new_poll)
             new_poll.poll_id = poll_id
             if manage_users(context, update.message.from_user.id, GROUP_ID):
