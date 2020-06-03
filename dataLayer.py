@@ -141,7 +141,7 @@ def get_stats_db(request: Dict[str, int]) -> Dict[str, int]:
                           db='poll_bot')
     result = []
     try:
-        for subject, quantity in request.items():
+        for subject in request:
             try:
                 with cnx.cursor() as cursor:
                     sql = "SELECT COUNT(*) FROM `polls` WHERE `Subject`=%s AND `Impug`=0 "

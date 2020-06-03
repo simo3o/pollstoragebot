@@ -41,8 +41,8 @@ def get_subject_poll(subject: str, poll_number: int) -> List[PollDto]:
     request = {
         subject: int(poll_number)
     }
-    subjects = [subject.upper()]
-    quantity = [int(poll_number)]
+   # subjects = [subject.upper()]
+   # quantity = [int(poll_number)]
     polls = get_poll_by_subject(request)
     return polls
 
