@@ -167,6 +167,9 @@ def recull(update, context):
 
         requested_polls = get_group_test(message_parts[1].strip(), total_test)
         if update.effective_chat.type == 'private':
+            if len(requested_polls) < 1:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="No hi han enquestes d'aquest recull")
+
             send_polls(context, update.effective_user.id, requested_polls)
         else:
             if update.message.from_user.id in IMPUGNATORS:
@@ -189,6 +192,8 @@ def stats(update, context):
             total_polls += subject[1]
         message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
 
 
 def xulla(update, context):
@@ -198,6 +203,8 @@ def xulla(update, context):
                 for sim, name in TEST_GROUP.items():
                     message += "\n {0} : {1} ".format(sim, name)
                 context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
 
 
 def simulacre(update, context):
@@ -273,6 +280,8 @@ def enquesta(update, context):
         message_parts = update.message.text.split()
         requested_poll = [get_single_poll(int(message_parts[1]))]
         send_polls(context, update.effective_chat.id, requested_poll)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
 
 def pendents (update, context):
     message_parts = update.message.text.split()
