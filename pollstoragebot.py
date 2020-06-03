@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 import logging
+import random
+import time
+from typing import List, Tuple
 
 from telegram.error import TimedOut, BadRequest
-from telegram.ext import Updater
 from telegram.ext import CommandHandler
-from telegram.ext import MessageHandler, Filters, PollHandler, PollAnswerHandler
-from Dtos import PollDto, userDto
+from telegram.ext import MessageHandler, Filters
+from telegram.ext import Updater
+
+from Dtos import PollDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP
-from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, get_pendents, get_group_test
-import random
-from typing import List, Tuple
-import time
+from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, \
+    get_pendents, get_group_test
 
 
 def manage_users(context, user_id, group_id) -> bool:
@@ -67,19 +69,22 @@ def send_polls(context, user_id, polls):
                             requested_poll.poll_id) + '-' + member_username.user.full_name + ':' + requested_poll.question,
                                               type='quiz', is_anonymous=True,
                                               allows_multiple_answers=False, options=requested_poll.answers,
-                                              correct_option_id=requested_poll.correct_answer, explanation=requested_poll.explanation)
+                                              correct_option_id=requested_poll.correct_answer,
+                                              explanation=requested_poll.explanation)
                     except BadRequest:
-                        context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {} feta per {}'.format(requested_poll.poll_id, member_username.user.full_name))
+                        context.bot.send_message(chat_id=user_id,
+                                                 text='Hi ha hagut un problema la enquesta d"ID: {} feta per {}'.format(
+                                                     requested_poll.poll_id, member_username.user.full_name))
                 else:
                     # Testing
                     context.bot.send_poll(user_id, str(requested_poll.poll_id) + ':' + requested_poll.question,
                                           type='quiz', is_anonymous=True,
                                           allows_multiple_answers=False, options=requested_poll.answers,
-                                          correct_option_id=requested_poll.correct_answer, explanation=requested_poll.explanation)
+                                          correct_option_id=requested_poll.correct_answer,
+                                          explanation=requested_poll.explanation)
             finally:
                 # To Avoid Telegram Flood exception on large requests
                 time.sleep(0.2)
-
 
 
 def start(update, context):
@@ -109,18 +114,21 @@ def poll_received_handler(update, context):
                 subject = subject[:-1]
             else:
                 group_test = None
-            
+
             poll_answers = []
             for option in update.message.poll.options:
                 poll_answers.append(option.text)
 
             new_poll = PollDto(chat_id=GROUP_ID, question=question, answers=poll_answers,
-                               correct_answer=int(update.message.poll.correct_option_id), user_id=update.message.from_user.id, subject=subject, explanation=update.message.poll.explanation, group_test=group_test)
+                               correct_answer=int(update.message.poll.correct_option_id),
+                               user_id=update.message.from_user.id, subject=subject,
+                               explanation=update.message.poll.explanation, group_test=group_test)
             poll_id = add_poll(new_poll)
             new_poll.poll_id = poll_id
             if manage_users(context, update.message.from_user.id, GROUP_ID):
                 send_polls(context, GROUP_ID, [new_poll])
-                context.bot.send_message(chat_id=update.effective_chat.id, text="Enquesta {} Publicada!".format(new_poll.poll_id))
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text="Enquesta {} Publicada!".format(new_poll.poll_id))
                 print('Poll added')
             else:
                 print("An exception occurred")
@@ -152,7 +160,7 @@ def test(update, context):
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
     else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
 def recull(update, context):
@@ -164,7 +172,6 @@ def recull(update, context):
         except (ValueError, TypeError):
             total_test = 0
             context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
-
         requested_polls = get_group_test(message_parts[1].strip(), total_test)
         if update.effective_chat.type == 'private':
             if len(requested_polls) < 1:
@@ -173,16 +180,16 @@ def recull(update, context):
                 send_polls(context, update.effective_user.id, requested_polls)
         else:
             if update.message.from_user.id in IMPUGNATORS:
-                send_polls(context, GROUP_ID, requested_polls)
-            else:
                 if len(requested_polls) < 1:
                     context.bot.send_message(chat_id=update.effective_chat.id,
                                              text="No hi han enquestes d'aquest recull")
                 else:
-                    context.bot.send_message(chat_id=update.effective_chat.id,
+                    send_polls(context, GROUP_ID, requested_polls)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
     else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
 def stats(update, context):
@@ -201,14 +208,14 @@ def stats(update, context):
 
 
 def xulla(update, context):
-        if (manage_users(context, update.message.from_user.id, GROUP_ID)):
-            if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
-                message = ''
-                for sim, name in TEST_GROUP.items():
-                    message += "\n {0} : {1} ".format(sim, name)
-                context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-            else:
-                context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
+    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+        if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+            message = ''
+            for sim, name in TEST_GROUP.items():
+                message += "\n {0} : {1} ".format(sim, name)
+            context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
 
 
 def simulacre(update, context):
@@ -238,7 +245,6 @@ def simulacre(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
 
 
-
 def impgunation(update, context):
     if update.message.from_user.id in IMPUGNATORS:
         message_parts = update.message.text.split()
@@ -250,7 +256,8 @@ def impgunation(update, context):
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
             impugnated_poll = poll_impugnation(impugnate_poll, True)
             if impugnated_poll:
-                context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta {} impugnada!'.format(str(impugnate_poll)))
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text='Enquesta {} impugnada!'.format(str(impugnate_poll)))
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
@@ -287,7 +294,8 @@ def enquesta(update, context):
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
 
-def pendents (update, context):
+
+def pendents(update, context):
     message_parts = update.message.text.split()
     if (manage_users(context, update.message.from_user.id, GROUP_ID)):
         if len(message_parts) < 3:
@@ -313,9 +321,10 @@ def pendents (update, context):
                                                  text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
 
             else:
-                context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text='No hi ha enquestes de les seleccionades ')
     else:
-         context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup correcte")
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup correcte")
 
 
 def main():
