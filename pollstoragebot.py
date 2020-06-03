@@ -14,6 +14,15 @@ from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP
 from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, \
     get_pendents, get_group_test
 
+UNAUTHORIZED_JOKES = [
+    "No tens permisos per fer res a aquest bot, que t'has pensat...",
+    "Perqué tú ho digues!!",
+    "No tens permís, pardal",
+    "Jo no faig sempre el que tu vols eh!!",
+    "Sempre demanant sempre demanant, ara no vull...",
+]
+POLL_PROBLEM= 'Hi ha hagut un problema la enquesta d"ID: {}'
+POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
 
 def manage_users(context, user_id, group_id) -> bool:
     try:
@@ -44,7 +53,7 @@ def send_polls(context, user_id, polls):
     for requested_poll in polls:
         if requested_poll.poll_id == -1:
             context.bot.send_message(chat_id=user_id,
-                                     text='Hi ha hagut un problema la enquesta d"ID: {}'.format(requested_poll.poll_id))
+                                     text=POLL_PROBLEM.format(requested_poll.poll_id))
         else:
             try:
                 if PRODUCTION_BUILD:
@@ -57,7 +66,7 @@ def send_polls(context, user_id, polls):
                     # Testing
                     True
             except:
-                context.bot.send_message(chat_id=user_id, text='Hi ha hagut un problema la enquesta d"ID: {}'.format(
+                context.bot.send_message(chat_id=user_id, text=POLL_PROBLEM.format(
                     requested_poll.poll_id))
             else:
                 requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(
@@ -73,7 +82,7 @@ def send_polls(context, user_id, polls):
                                               explanation=requested_poll.explanation)
                     except BadRequest:
                         context.bot.send_message(chat_id=user_id,
-                                                 text='Hi ha hagut un problema la enquesta d"ID: {} feta per {}'.format(
+                                                 text=POLL_PROBLEM_USER.format(
                                                      requested_poll.poll_id, member_username.user.full_name))
                 else:
                     # Testing
@@ -94,7 +103,7 @@ def start(update, context):
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No tens permisos per fer res a aquest bot")
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def poll_received_handler(update, context):
@@ -132,7 +141,7 @@ def poll_received_handler(update, context):
                 print('Poll added')
             else:
                 print("An exception occurred")
-                context.bot.send_message(chat_id=update.effective_chat.id, text="No eres del grup necessari")
+                context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
     else:
         if update.message.chat.type == 'private':
@@ -158,9 +167,9 @@ def test(update, context):
                 send_polls(context, GROUP_ID, requested_polls)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
-                                         text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+                                         text=random.choice(UNAUTHORIZED_JOKES))
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def recull(update, context):
@@ -187,9 +196,9 @@ def recull(update, context):
                     send_polls(context, GROUP_ID, requested_polls)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
-                                         text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+                                         text=random.choice(UNAUTHORIZED_JOKES))
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def stats(update, context):
@@ -204,7 +213,7 @@ def stats(update, context):
         message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def xulla(update, context):
@@ -215,7 +224,7 @@ def xulla(update, context):
                 message += "\n {0} : {1} ".format(sim, name)
             context.bot.send_message(chat_id=update.effective_chat.id, text=message)
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
+            context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def simulacre(update, context):
@@ -237,12 +246,12 @@ def simulacre(update, context):
                     send_polls(context, GROUP_ID, requested_polls)
                 else:
                     context.bot.send_message(chat_id=update.effective_chat.id,
-                                             text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+                                             text=random.choice(UNAUTHORIZED_JOKES))
 
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No hi ha enquestes de les seleccionades ')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def impgunation(update, context):
@@ -261,9 +270,9 @@ def impgunation(update, context):
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
+            context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def restaurator(update, context):
@@ -281,9 +290,9 @@ def restaurator(update, context):
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Hi ha hagut algun error')
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permisos')
+            context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup d'impugnadors")
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def enquesta(update, context):
@@ -292,7 +301,7 @@ def enquesta(update, context):
         requested_poll = [get_single_poll(int(message_parts[1]))]
         send_polls(context, update.effective_chat.id, requested_poll)
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='No tens permís pardal')
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def pendents(update, context):
@@ -318,13 +327,13 @@ def pendents(update, context):
                         send_polls(context, GROUP_ID, polls_pendents)
                     else:
                         context.bot.send_message(chat_id=update.effective_chat.id,
-                                                 text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
+                                                 text=random.choice(UNAUTHORIZED_JOKES))
 
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='No hi ha enquestes de les seleccionades ')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="No eres part del grup correcte")
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def main():
