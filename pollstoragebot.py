@@ -169,13 +169,17 @@ def recull(update, context):
         if update.effective_chat.type == 'private':
             if len(requested_polls) < 1:
                 context.bot.send_message(chat_id=update.effective_chat.id, text="No hi han enquestes d'aquest recull")
-
-            send_polls(context, update.effective_user.id, requested_polls)
+            else:
+                send_polls(context, update.effective_user.id, requested_polls)
         else:
             if update.message.from_user.id in IMPUGNATORS:
                 send_polls(context, GROUP_ID, requested_polls)
             else:
-                context.bot.send_message(chat_id=update.effective_chat.id,
+                if len(requested_polls) < 1:
+                    context.bot.send_message(chat_id=update.effective_chat.id,
+                                             text="No hi han enquestes d'aquest recull")
+                else:
+                    context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Perqué tú ho digues ' + update.message.from_user.full_name + '!!')
     else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='No eres del grup correcte')
