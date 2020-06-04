@@ -22,7 +22,9 @@ UNAUTHORIZED_JOKES = [
     "Sempre demanant sempre demanant, ara no vull...",
     "Com dius, no t'he entes bé, pots repetir...",
     "Ja estas marejant...",
-    "Espera que m'ho pense....., NO"
+    "Espera que m'ho pense....., NO",
+    "Si vols tindre permís has de dir-me que va ser primer l'ou o la gallina",
+    "Jo no vaig a ajudar-te, demana-li al OJT a veure si t'ajuda..."
 ]
 POLL_PROBLEM = 'Hi ha hagut un problema la enquesta d"ID: {}'
 POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
