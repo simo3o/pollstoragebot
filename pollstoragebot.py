@@ -26,7 +26,12 @@ UNAUTHORIZED_JOKES = [
     "Si vols tindre permís has de dir-me que va ser primer l'ou o la gallina",
     "Jo no vaig a ajudar-te, demana-li al OJT a veure si t'ajuda...",
     "Mira-ho a la wiki, com diu un conegut...",
-    "https://www.youtube.com/watch?v=rX7wtNOkuHo"
+    "https://www.youtube.com/watch?v=rX7wtNOkuHo",
+    "https://media.giphy.com/media/wYyTHMm50f4Dm/giphy.gif",
+    "https://media.giphy.com/media/d1E1msx7Yw5Ne1Fe/giphy.gif",
+    "https://media.giphy.com/media/ftqLysT45BJMagKFuk/giphy.gif",
+    "https://media.giphy.com/media/6Q2KA5ly49368/giphy.gif",
+    "https://media.giphy.com/media/1iTIu7WtSfPqMDbW/giphy.gif"
 ]
 POLL_PROBLEM = 'Hi ha hagut un problema la enquesta d"ID: {}'
 POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
