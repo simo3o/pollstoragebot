@@ -18,11 +18,15 @@ UNAUTHORIZED_JOKES = [
     "No tens permisos per fer res a aquest bot, que t'has pensat...",
     "Perqué tú ho digues!!",
     "No tens permís, pardal",
-    "Jo no faig sempre el que tu vols eh!!",
+    "Jo no sempre faig el que tu vols eh!!",
     "Sempre demanant sempre demanant, ara no vull...",
+    "Com dius, no t'he entes bé, pots repetir...",
+    "Ja estas marejant...",
+    "Espera que m'ho pense....., NO"
 ]
-POLL_PROBLEM= 'Hi ha hagut un problema la enquesta d"ID: {}'
+POLL_PROBLEM = 'Hi ha hagut un problema la enquesta d"ID: {}'
 POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
+
 
 def manage_users(context, user_id, group_id) -> bool:
     try:
