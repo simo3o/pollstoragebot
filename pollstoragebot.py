@@ -216,14 +216,14 @@ def recull(update, context):
 
 def stats(update, context):
     if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
+       # context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
         stats_result = get_stats()
-        message = ""
+        message = "Enquestes per tema: \n"
         total_polls = 0
         for subject in stats_result:
-            message += "\n " + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
+            message += "\n" + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
             total_polls += subject[1]
-        message += "\n \n TOTAL: " + str(total_polls) + ' enquestes'
+        message += "\n \nTOTAL: " + str(total_polls) + ' enquestes'
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
