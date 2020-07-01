@@ -232,7 +232,7 @@ def stats(update, context):
 def xulla(update, context):
     if (manage_users(context, update.message.from_user.id, GROUP_ID)):
         if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
-            message = ''
+            message = 'Comandos: \n /test TEMA num \n /simulacre num \n /recull TIPUS num \n /pendents INICI-FINAL \n /stats \n \nTipus de reculls: '
             for sim, name in TEST_GROUP.items():
                 message += "\n {0} : {1} ".format(sim, name)
             context.bot.send_message(chat_id=update.effective_chat.id, text=message)
