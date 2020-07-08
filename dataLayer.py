@@ -113,7 +113,7 @@ def get_pendents_db(first_id:int, last_id:int) -> List[PollDto]:
     last_row = int(last_id)-int(first_id) +1
     try:
         with cnx.cursor() as cursor:
-            sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`, `Impug`  FROM `polls` LIMIT " \
+            sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`, `Impug`  FROM `polls` WHERE `Impug`=0 LIMIT " \
                   "%s , %s"
             cursor.execute(sql, (first_row, last_row))
             results = cursor.fetchall()
