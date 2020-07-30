@@ -1,5 +1,5 @@
 import random
-from math import floor
+from math import floor, ceil
 from typing import List
 
 from Dtos import PollDto
@@ -57,7 +57,10 @@ def get_group_test(subject: str, poll_number: int) -> List[PollDto]:
 def get_simul(poll_number: int) -> List[PollDto]:
     simulacre = dict(SIMUL_SCHEMA)
     for subject, quantity in simulacre.items():
-        simulacre[subject] = floor((quantity * poll_number) / 100)
+        if ((quantity * poll_number) / 100) < 1:
+            simulacre[subject] = 1
+        else:
+            simulacre[subject] = floor((quantity * poll_number) / 100)
     polls = get_poll_by_subject(simulacre)
     random.shuffle(polls)
     return polls

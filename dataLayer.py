@@ -1,6 +1,7 @@
 import pymysql
 from Dtos import PollDto, userDto
 import json
+import random
 from config import DB_CONFIG
 from typing import List
 from typing import Dict
@@ -58,10 +59,11 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
         for subject, quantity in request.items():
             with cnx.cursor() as cursor:
                 sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` WHERE " \
-                      "`Subject`=%s AND `Impug`=0 ORDER BY RAND()"
+                      "`Subject`=%s AND `Impug`=0"
                 cursor.execute(sql, (subject))
-                results = cursor.fetchmany(quantity)
-                for result in results:
+                results = cursor.fetchall()
+                requested_results = random.sample(results, quantity)
+                for result in requested_results:
                     try:
                         poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
                     except:
@@ -85,10 +87,11 @@ def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
         for subject, quantity in request.items():
             with cnx.cursor() as cursor:
                 sql = "SELECT `Chat_Id`, `Question`, `Answers`, `Correct_Answer`,`User_Id`, `Subject`, `Explanation`, `ID`  FROM `polls` WHERE " \
-                      "`Group_test`=%s AND `Impug`=0 ORDER BY RAND()"
+                      "`Group_test`=%s AND `Impug`=0"
                 cursor.execute(sql, (subject))
-                results = cursor.fetchmany(quantity)
-                for result in results:
+                results = cursor.fetchall()
+                requested_results = random.sample(results, quantity)
+                for result in requested_results:
                     try:
                         poll_result = PollDto(chat_id=result[0], question=result[1], answers=json.loads(result[2]), correct_answer=result[3], user_id=result[4], subject=result[5], explanation=result[6], poll_id=result[7])
 #                        poll_result = PollDto(result[0], result[1], json.loads(result[2]), result[3], result[4], result[5], result[6], result[7])
@@ -103,6 +106,7 @@ def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
     finally:
         cnx.close()
         return agregated_poll
+
 
 
 def get_pendents_db(first_id:int, last_id:int) -> List[PollDto]:
