@@ -10,7 +10,7 @@ from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
 from Dtos import PollDto
-from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP
+from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP, BLACKLIST
 from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, \
     get_pendents, get_group_test
 
@@ -38,6 +38,8 @@ POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
 
 
 def manage_users(context, user_id, group_id) -> bool:
+    if user_id in BLACKLIST:
+        return False
     try:
         member_of_group = context.bot.get_chat_member(group_id, user_id)
     except BadRequest:
@@ -78,7 +80,7 @@ def send_polls(context, user_id, polls):
                 else:
                     # Testing
                     True
-            except:
+            except (ValueError, Exception):
                 context.bot.send_message(chat_id=user_id, text=POLL_PROBLEM.format(
                     requested_poll.poll_id))
             else:
@@ -215,22 +217,24 @@ def recull(update, context):
 
 
 def stats(update, context):
-    if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
-       # context.bot.send_message(chat_id=update.effective_chat.id, text="Enquestes per tema: ")
-        stats_result = get_stats()
-        message = "Enquestes per tema: \n"
-        total_polls = 0
-        for subject in stats_result:
-            message += "\n" + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
-            total_polls += subject[1]
-        message += "\n \nTOTAL: " + str(total_polls) + ' enquestes'
-        context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
+        if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+            stats_result = get_stats()
+            message = "Enquestes per tema: \n"
+            total_polls = 0
+            for subject in stats_result:
+                message += "\n" + str(subject[0]) + ": " + str(subject[1]) + ' enquestes'
+                total_polls += subject[1]
+            message += "\n \nTOTAL: " + str(total_polls) + ' enquestes'
+            context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def xulla(update, context):
-    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
         if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
             message = 'Comandos: \n /test TEMA num \n /simulacre num \n /recull TIPUS num \n /pendents INICI FINAL \n /stats \n \nTipus de reculls: '
             for sim, name in TEST_GROUP.items():
@@ -241,9 +245,8 @@ def xulla(update, context):
 
 
 def simulacre(update, context):
-    # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
-    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
         try:
             total_sim = int(message_parts[1])
         except (ValueError, TypeError):
