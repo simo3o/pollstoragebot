@@ -4,7 +4,7 @@ from typing import List
 
 from Dtos import PollDto
 from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db, \
-    get_pendents_db, get_poll_by_group
+    get_pendents_db, get_poll_by_group, get_user_list, get_user_ranking
 
 SIMUL_SCHEMA = {
     'MECANICA': 7,
@@ -85,3 +85,12 @@ def get_pendents(first_id: int, last_id: int) -> List[PollDto]:
 
 def get_single_poll(poll_id: int) -> PollDto:
     return get_single_poll_db(poll_id)
+
+
+def get_user_stats():
+    users = get_user_list()
+    result = []
+    for user in users:
+        ranking = get_user_ranking(user)
+        result.append((user, ranking))
+    return result

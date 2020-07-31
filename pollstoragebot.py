@@ -12,7 +12,7 @@ from telegram.ext import Updater
 from Dtos import PollDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP, BLACKLIST
 from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, \
-    get_pendents, get_group_test
+    get_pendents, get_group_test, get_user_stats
 
 UNAUTHORIZED_JOKES = [
     "No tens permisos per fer res a aquest bot, que t'has pensat...",
@@ -352,6 +352,29 @@ def pendents(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
+def user_stats(update, context):
+    if update.message.from_user.id in IMPUGNATORS:
+        user_ranking = get_user_stats()
+        message = "Ranking per usuari: \n"
+        userName = ""
+        for (user, ranking) in user_ranking:
+            if PRODUCTION_BUILD:
+                # On Production
+                try:
+                    member_username = context.bot.get_chat_member(GROUP_ID, user)
+                    userName = member_username.user.full_name
+                except BadRequest:
+                    userName = 'Error'
+            else:
+                # Testing
+                True
+            message += "{}: {} \n".format(userName, ranking)
+        context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
+
+
+
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     updater = Updater(token=TOKEN, use_context=True)
@@ -366,6 +389,7 @@ def main():
     pendents_handler = CommandHandler('pendents', pendents)
     xulla_handler = CommandHandler('xulla', xulla)
     recull_handler = CommandHandler('recull', recull)
+    user_stats_handler = CommandHandler('ranking', user_stats)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -380,6 +404,7 @@ def main():
     dispatcher.add_handler(pendents_handler)
     dispatcher.add_handler(xulla_handler)
     dispatcher.add_handler(recull_handler)
+    dispatcher.add_handler(user_stats_handler)
     updater.start_polling()
     updater.idle()
 

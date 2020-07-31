@@ -212,3 +212,33 @@ def get_single_poll_db(poll_id: int) -> PollDto:
     finally:
         cnx.close()
         return poll_result
+
+
+def get_user_list():
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    try:
+        with cnx.cursor() as cursor:
+            sql ="SELECT DISTINCT `User_Id` FROM `polls` "
+            cursor.execute(sql)
+            result = cursor.fetchall()
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+    finally:
+        cnx.close()
+        return [int(str(row[0])) for row in result]
+
+
+def get_user_ranking(user_id: int) -> int:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    try:
+        with cnx.cursor() as cursor:
+            sql = "SELECT COUNT(`ID`) FROM `polls` WHERE `User_Id` =%s"
+            cursor.execute(sql, user_id)
+            result = cursor.fetchone()
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+    finally:
+        cnx.close()
+        return int(str(result[0]))
