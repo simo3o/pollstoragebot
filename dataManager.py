@@ -1,7 +1,6 @@
 import random
 from math import floor, ceil
 from typing import List
-
 from Dtos import PollDto
 from dataLayer import get_poll_by_subject, poll_impugnation_db, add_poll_db, get_stats_db, get_single_poll_db, \
     get_pendents_db, get_poll_by_group, get_user_list, get_user_ranking
@@ -93,4 +92,4 @@ def get_user_stats():
     for user in users:
         ranking = get_user_ranking(user)
         result.append((user, ranking))
-    return result
+    return sorted(result, key=lambda x: x[1], reverse=True)
