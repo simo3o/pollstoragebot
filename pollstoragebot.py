@@ -312,7 +312,7 @@ def restaurator(update, context):
 
 
 def enquesta(update, context):
-    if update.message.from_user.id in IMPUGNATORS:
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
         message_parts = update.message.text.split()
         requested_poll = [get_single_poll(int(message_parts[1]))]
         send_polls(context, update.effective_chat.id, requested_poll)
@@ -322,7 +322,7 @@ def enquesta(update, context):
 
 def pendents(update, context):
     message_parts = update.message.text.split()
-    if (manage_users(context, update.message.from_user.id, GROUP_ID)):
+    if manage_users(context, update.message.from_user.id, GROUP_ID):
         if len(message_parts) < 3:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Digues un número final')
         else:
