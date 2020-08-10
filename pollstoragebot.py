@@ -315,7 +315,14 @@ def enquesta(update, context):
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         message_parts = update.message.text.split()
         requested_poll = [get_single_poll(int(message_parts[1]))]
-        send_polls(context, update.effective_chat.id, requested_poll)
+        if update.effective_chat.type == 'private':
+            send_polls(context, update.effective_chat.id, requested_poll)
+        else:
+            if update.message.from_user.id in IMPUGNATORS:
+                send_polls(context, update.effective_chat.id, requested_poll)
+            else:
+                context.bot.send_message(chat_id=update.effective_chat.id,
+                                         text=random.choice(UNAUTHORIZED_JOKES))
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
