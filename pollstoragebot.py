@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import datetime
 import logging
 import random
 import time
@@ -11,8 +12,7 @@ from telegram.ext import Updater
 
 from Dtos import PollDto
 from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP, BLACKLIST
-from dataManager import get_subject_poll, get_simul, poll_impugnation, add_poll, get_stats, get_single_poll, \
-    get_pendents, get_group_test, get_user_stats
+import dataManager
 
 UNAUTHORIZED_JOKES = [
     "No tens permisos per fer res a aquest bot, que t'has pensat...",
@@ -38,7 +38,7 @@ POLL_PROBLEM_USER = 'Hi ha hagut un problema la enquesta d"ID: {} feta per {}'
 
 
 def manage_users(context, user_id, group_id) -> bool:
-    if user_id in BLACKLIST:
+    if dataManager.is_banned(user_id):
         return False
     try:
         member_of_group = context.bot.get_chat_member(group_id, user_id)
@@ -56,15 +56,32 @@ def manage_users(context, user_id, group_id) -> bool:
             return True
 
 
-def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], int]:
-    correct_answer = answers[correct_id]
-    randomized_answers = answers
-    random.shuffle(randomized_answers)
-    new_correct_id = randomized_answers.index(correct_answer)
-    return randomized_answers, new_correct_id
+def get_user_id(context, user_name):
+    userlist = dataManager.get_user_list()
+    active_user =0
+    for user, weekly in userlist:
+        try:
+            member_of_group = context.bot.get_chat_member(GROUP_ID, user)
+            if user_name == member_of_group.user.full_name:
+                active_user = member_of_group.user.id
+                break
+        except BadRequest:
+            active_user = 0
+        except TimedOut:
+            active_user = 0
+    return active_user        
+    pass
+
+# def randomize_answers(answers: List[str], correct_id: int) -> Tuple[List[str], int]:
+#     correct_answer = answers[correct_id]
+#     randomized_answers = answers
+#     random.shuffle(randomized_answers)
+#     new_correct_id = randomized_answers.index(correct_answer)
+#     return randomized_answers, new_correct_id
 
 
 def send_polls(context, user_id, polls):
+    member_username = {}
     for requested_poll in polls:
         if requested_poll.poll_id == -1:
             context.bot.send_message(chat_id=user_id,
@@ -84,7 +101,7 @@ def send_polls(context, user_id, polls):
                 context.bot.send_message(chat_id=user_id, text=POLL_PROBLEM.format(
                     requested_poll.poll_id))
             else:
-                requested_poll.answers, requested_poll.correct_answer = randomize_answers(requested_poll.answers, int(
+                requested_poll.answers, requested_poll.correct_answer = dataManager.randomize_answers(requested_poll.answers, int(
                     requested_poll.correct_answer))
                 # Production
                 if PRODUCTION_BUILD:
@@ -147,7 +164,7 @@ def poll_received_handler(update, context):
                                correct_answer=int(update.message.poll.correct_option_id),
                                user_id=update.message.from_user.id, subject=subject,
                                explanation=update.message.poll.explanation, group_test=group_test)
-            poll_id = add_poll(new_poll)
+            poll_id = dataManager.add_poll(new_poll)
             new_poll.poll_id = poll_id
             if manage_users(context, update.message.from_user.id, GROUP_ID):
                 send_polls(context, GROUP_ID, [new_poll])
@@ -174,11 +191,11 @@ def test(update, context):
             total_test = 0
             context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
 
-        requested_polls = get_subject_poll(message_parts[1].strip(), total_test)
+        requested_polls = dataManager.get_subject_poll(message_parts[1].strip(), total_test)
         if update.effective_chat.type == 'private':
             send_polls(context, update.effective_user.id, requested_polls)
         else:
-            if update.message.from_user.id in IMPUGNATORS:
+            if dataManager.is_impugnator(update.message.from_user.id):
                 send_polls(context, GROUP_ID, requested_polls)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
@@ -196,14 +213,14 @@ def recull(update, context):
         except (ValueError, TypeError):
             total_test = 0
             context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
-        requested_polls = get_group_test(message_parts[1].strip(), total_test)
+        requested_polls = dataManager.get_group_test(message_parts[1].strip(), total_test)
         if update.effective_chat.type == 'private':
             if len(requested_polls) < 1:
                 context.bot.send_message(chat_id=update.effective_chat.id, text="No hi han enquestes d'aquest recull")
             else:
                 send_polls(context, update.effective_user.id, requested_polls)
         else:
-            if update.message.from_user.id in IMPUGNATORS:
+            if dataManager.is_impugnator(update.message.from_user.id):
                 if len(requested_polls) < 1:
                     context.bot.send_message(chat_id=update.effective_chat.id,
                                              text="No hi han enquestes d'aquest recull")
@@ -219,7 +236,7 @@ def recull(update, context):
 def stats(update, context):
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
-            stats_result = get_stats()
+            stats_result = dataManager.get_stats()
             message = "Enquestes per tema: \n"
             total_polls = 0
             for subject in stats_result:
@@ -253,12 +270,12 @@ def simulacre(update, context):
             total_sim = 0
             context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
 
-        requested_polls = get_simul(total_sim)
+        requested_polls = dataManager.get_simul(total_sim)
         if len(requested_polls) > 0:
             if update.effective_chat.type == 'private':
                 send_polls(context, update.effective_user.id, requested_polls)
             else:
-                if update.message.from_user.id in IMPUGNATORS:
+                if dataManager.is_impugnator(update.message.from_user.id):
                     send_polls(context, GROUP_ID, requested_polls)
                 else:
                     context.bot.send_message(chat_id=update.effective_chat.id,
@@ -271,7 +288,7 @@ def simulacre(update, context):
 
 
 def impgunation(update, context):
-    if update.message.from_user.id in IMPUGNATORS:
+    if dataManager.is_impugnator(update.message.from_user.id):
         message_parts = update.message.text.split()
         if manage_users(context, update.message.from_user.id, GROUP_ID):
             try:
@@ -279,7 +296,7 @@ def impgunation(update, context):
             except (ValueError, TypeError):
                 impugnate_poll = 0
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
-            impugnated_poll = poll_impugnation(impugnate_poll, True)
+            impugnated_poll = dataManager.poll_impugnation(impugnate_poll, True)
             if impugnated_poll:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text='Enquesta {} impugnada!'.format(str(impugnate_poll)))
@@ -292,7 +309,7 @@ def impgunation(update, context):
 
 
 def restaurator(update, context):
-    if update.message.from_user.id in IMPUGNATORS:
+    if dataManager.is_impugnator(update.message.from_user.id):
         message_parts = update.message.text.split()
         if manage_users(context, update.message.from_user.id, GROUP_ID):
             try:
@@ -300,7 +317,7 @@ def restaurator(update, context):
             except (ValueError, TypeError):
                 restaurate_poll = 0
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
-            impugnated_poll = poll_impugnation(restaurate_poll, False)
+            impugnated_poll = dataManager.poll_impugnation(restaurate_poll, False)
             if impugnated_poll:
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Enquesta restaurada')
             else:
@@ -314,11 +331,11 @@ def restaurator(update, context):
 def enquesta(update, context):
     if manage_users(context, update.message.from_user.id, GROUP_ID):
         message_parts = update.message.text.split()
-        requested_poll = [get_single_poll(int(message_parts[1]))]
+        requested_poll = [dataManager.get_single_poll(int(message_parts[1]))]
         if update.effective_chat.type == 'private':
             send_polls(context, update.effective_chat.id, requested_poll)
         else:
-            if update.message.from_user.id in IMPUGNATORS:
+            if dataManager.is_impugnator(update.message.from_user.id):
                 send_polls(context, update.effective_chat.id, requested_poll)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
@@ -341,7 +358,7 @@ def pendents(update, context):
                 last_id = 0
                 context.bot.send_message(chat_id=update.effective_chat.id, text='Error de format')
 
-            polls_pendents = get_pendents(first_id, last_id)
+            polls_pendents = dataManager.get_pendents(first_id, last_id)
             if len(polls_pendents) > 0:
                 if update.effective_chat.type == 'private':
                     send_polls(context, update.effective_user.id, polls_pendents)
@@ -360,8 +377,8 @@ def pendents(update, context):
 
 
 def user_stats(update, context):
-    if update.message.from_user.id in IMPUGNATORS:
-        user_ranking = get_user_stats()
+    if dataManager.is_impugnator(update.message.from_user.id):
+        user_ranking = dataManager.get_user_stats()
         message = "Ranking per usuari: \n"
         userName = ""
         for (user, ranking) in user_ranking:
@@ -381,12 +398,43 @@ def user_stats(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
+def check_weekly(context):
+    weekly_fails = dataManager.check_users_weekly()
+    member_username = ''
+    for user in weekly_fails['strikes']:
+        try:
+            member_username = context.bot.get_chat_member(GROUP_ID, user)
+            # print ("WE DID IT!!")
+        except (BadRequest, TimedOut):
+            member_username = 'Error'
+
+       # context.bot.send_message(chat_id=GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(member_username))
+
+    for (user) in weekly_fails['bans']:
+            try:
+                member_username = context.bot.get_chat_member(GROUP_ID, user)
+            except BadRequest:
+                member_username = 'Error'
+
+           # context.bot.send_message(chat_id=GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(member_username))
+
+
+def start_weekly(update, context_passed):
+    context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0), context= context_passed, name='weekly')
+    context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
+
+
+def stop_weekly(update, context):
+    context.job_queue.stop()
+    context.bot.send_message(chat_id=update.message.chat_id,text='Joc Parat!')
+
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
-    start_handler = CommandHandler('start', start)
+    # job_queue = dispatcher.job_queue
+    start_handler = CommandHandler('start', start, )
     test_handler = CommandHandler('test', test)
     stats_handler = CommandHandler('stats', stats)
     simulacre_handler = CommandHandler('simulacre', simulacre)
@@ -397,6 +445,8 @@ def main():
     xulla_handler = CommandHandler('xulla', xulla)
     recull_handler = CommandHandler('recull', recull)
     user_stats_handler = CommandHandler('ranking', user_stats)
+    check_weekly_handler = CommandHandler('startweekly', start_weekly, pass_job_queue=True)
+    stop_weekly_handler = CommandHandler('stopweekly', stop_weekly, pass_job_queue=True)
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -412,6 +462,8 @@ def main():
     dispatcher.add_handler(xulla_handler)
     dispatcher.add_handler(recull_handler)
     dispatcher.add_handler(user_stats_handler)
+    dispatcher.add_handler(check_weekly_handler)
+    dispatcher.add_handler(stop_weekly_handler)
     updater.start_polling()
     updater.idle()
 
