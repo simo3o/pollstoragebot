@@ -439,6 +439,7 @@ def check_weekly(context):
 def start_weekly(update, context_passed):
     if dataManager.is_impugnator(update.message.from_user.id):
         context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0), context= context_passed, name='weekly')
+        context_passed.bot.send_message(chat_id=update.message.chat_id, text='https://media.giphy.com/media/1qnuGtWiouZUI/giphy.gif')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='El mínim de preguntes setmanals son: {}'.format(str(config.MIN_WEEKLY_POLLS)))
     else:
@@ -455,8 +456,8 @@ def stop_weekly(update, context):
 
 def ban_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
-        username = str(update.message.text.split()[1])
-        userid = get_user_id(username)
+        username = " ".join(update.message.text.split()[1:])
+        userid = get_user_id(context, username)
         if username != 0:
             banned = dataManager.ban_new_user(True, userid)
             context.bot.send_message(chat_id=update.message.chat_id, text='Usuari {} banejat!'.format(username))
