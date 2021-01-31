@@ -8,3 +8,5 @@ dataLayer.pyc
 config.pyc
 config.py.bak
 bash.exe.stackdump
+conversation.py
+update_db.py

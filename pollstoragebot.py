@@ -469,7 +469,7 @@ def ban_user(update, context):
 
 def remove_ban_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):   
-        username = str(update.message.text.split()[1])
+        username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(username)
         if username != 0:
             banned = dataManager.ban_new_user(False, userid)
@@ -482,7 +482,7 @@ def remove_ban_user(update, context):
 
 def add_old_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
-        username = str(update.message.text.split()[1])
+        username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(username)
         if username != 0:    
             old = dataManager.set_old(True, userid)
@@ -495,7 +495,7 @@ def add_old_user(update, context):
 
 def remove_old_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
-        username = str(update.message.text.split()[1])
+        username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(username)
         if username != 0:    
             old = dataManager.set_old(False, userid)
@@ -509,7 +509,7 @@ def remove_old_user(update, context):
 
 def add_impugnator(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
-        username = str(update.message.text.split()[1])
+        username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(username)
         if username != 0:    
             old = dataManager.set_new_impugnator(True, userid)
@@ -523,7 +523,7 @@ def add_impugnator(update, context):
 
 def remove_impugnator(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
-        username = str(update.message.text.split()[1])
+        username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(username)
         if username != 0:    
             old = dataManager.set_new_impugnator(True, userid)
