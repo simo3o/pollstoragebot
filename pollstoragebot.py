@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+from dataLayer import set_old_member
 import datetime
 import logging
 import random
 import time
+import fileinput
 from typing import List, Tuple
 
 from telegram.error import TimedOut, BadRequest
@@ -11,8 +13,9 @@ from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
 from Dtos import PollDto
-from config import TOKEN, GROUP_ID, PRODUCTION_BUILD, IMPUGNATORS, TEST_GROUP, BLACKLIST
+import config
 import dataManager
+import importlib
 
 UNAUTHORIZED_JOKES = [
     "No tens permisos per fer res a aquest bot, que t'has pensat...",
@@ -47,7 +50,7 @@ def manage_users(context, user_id, group_id) -> bool:
     except TimedOut:
         return False
     else:
-        if PRODUCTION_BUILD:
+        if config.PRODUCTION_BUILD:
             if member_of_group.status == 'administrator' or member_of_group.status == 'member' or member_of_group.status == 'creator':
                 return True
             else:
@@ -58,10 +61,10 @@ def manage_users(context, user_id, group_id) -> bool:
 
 def get_user_id(context, user_name):
     userlist = dataManager.get_user_list()
-    active_user =0
+    active_user = 0
     for user, weekly in userlist:
         try:
-            member_of_group = context.bot.get_chat_member(GROUP_ID, user)
+            member_of_group = context.bot.get_chat_member(config.GROUP_ID, user)
             if user_name == member_of_group.user.full_name:
                 active_user = member_of_group.user.id
                 break
@@ -88,10 +91,10 @@ def send_polls(context, user_id, polls):
                                      text=POLL_PROBLEM.format(requested_poll.poll_id))
         else:
             try:
-                if PRODUCTION_BUILD:
+                if config.PRODUCTION_BUILD:
                     # On Production
                     try:
-                        member_username = context.bot.get_chat_member(GROUP_ID, requested_poll.user_id)
+                        member_username = context.bot.get_chat_member(config.GROUP_ID, requested_poll.user_id)
                     except BadRequest:
                         member_username.user.full_name = 'Error'
                 else:
@@ -104,7 +107,7 @@ def send_polls(context, user_id, polls):
                 requested_poll.answers, requested_poll.correct_answer = dataManager.randomize_answers(requested_poll.answers, int(
                     requested_poll.correct_answer))
                 # Production
-                if PRODUCTION_BUILD:
+                if config.PRODUCTION_BUILD:
                     try:
                         context.bot.send_poll(user_id, str(
                             requested_poll.poll_id) + '-' + member_username.user.full_name + ':' + requested_poll.question,
@@ -132,7 +135,7 @@ def start(update, context):
     print('Command' + str(update))
     print('Group_ID: ', str(update.effective_chat.id), 'Group_Name: ', str(update.effective_chat.username))
     # user_allowed = manage_users(context, update.from_user.id, GROUP_ID)
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Comencem a estudiar?")
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
@@ -150,8 +153,8 @@ def poll_received_handler(update, context):
         else:
             question = question_splitted[1].strip()
             subject = question_splitted[0].upper().strip()
-            if subject[-1] in TEST_GROUP:
-                group_test = TEST_GROUP.get(subject[-1])
+            if subject[-1] in config.TEST_GROUP:
+                group_test = config.TEST_GROUP.get(subject[-1])
                 subject = subject[:-1]
             else:
                 group_test = None
@@ -160,14 +163,14 @@ def poll_received_handler(update, context):
             for option in update.message.poll.options:
                 poll_answers.append(option.text)
 
-            new_poll = PollDto(chat_id=GROUP_ID, question=question, answers=poll_answers,
+            new_poll = PollDto(chat_id=config.GROUP_ID, question=question, answers=poll_answers,
                                correct_answer=int(update.message.poll.correct_option_id),
                                user_id=update.message.from_user.id, subject=subject,
                                explanation=update.message.poll.explanation, group_test=group_test)
             poll_id = dataManager.add_poll(new_poll)
             new_poll.poll_id = poll_id
-            if manage_users(context, update.message.from_user.id, GROUP_ID):
-                send_polls(context, GROUP_ID, [new_poll])
+            if manage_users(context, update.message.from_user.id, config.GROUP_ID):
+                send_polls(context, config.GROUP_ID, [new_poll])
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text="Enquesta {} Publicada!".format(new_poll.poll_id))
                 print('Poll added')
@@ -184,7 +187,7 @@ def poll_received_handler(update, context):
 def test(update, context):
     # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         try:
             total_test = int(message_parts[2])
         except (ValueError, TypeError):
@@ -196,7 +199,7 @@ def test(update, context):
             send_polls(context, update.effective_user.id, requested_polls)
         else:
             if dataManager.is_impugnator(update.message.from_user.id):
-                send_polls(context, GROUP_ID, requested_polls)
+                send_polls(context, config.GROUP_ID, requested_polls)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text=random.choice(UNAUTHORIZED_JOKES))
@@ -207,7 +210,7 @@ def test(update, context):
 def recull(update, context):
     # if update.effective_chat.type == 'private':
     message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         try:
             total_test = int(message_parts[2])
         except (ValueError, TypeError):
@@ -225,7 +228,7 @@ def recull(update, context):
                     context.bot.send_message(chat_id=update.effective_chat.id,
                                              text="No hi han enquestes d'aquest recull")
                 else:
-                    send_polls(context, GROUP_ID, requested_polls)
+                    send_polls(context, config.GROUP_ID, requested_polls)
             else:
                 context.bot.send_message(chat_id=update.effective_chat.id,
                                          text=random.choice(UNAUTHORIZED_JOKES))
@@ -234,8 +237,8 @@ def recull(update, context):
 
 
 def stats(update, context):
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
-        if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
+        if update.effective_chat.type == 'private' or dataManager.is_impugnator(update.message.from_user.id):
             stats_result = dataManager.get_stats()
             message = "Enquestes per tema: \n"
             total_polls = 0
@@ -251,19 +254,33 @@ def stats(update, context):
 
 
 def xulla(update, context):
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
-        if update.effective_chat.type == 'private' or update.message.from_user.id in IMPUGNATORS:
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
+        if update.effective_chat.type == 'private' or dataManager.is_impugnator(update.message.from_user.id):
             message = 'Comandos: \n /test TEMA num \n /simulacre num \n /recull TIPUS num \n /pendents INICI FINAL \n /enquesta num \n/stats \n \nTipus de reculls: '
-            for sim, name in TEST_GROUP.items():
+            for sim, name in config.TEST_GROUP.items():
                 message += "\n {0} : {1} ".format(sim, name)
             context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-        else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def xulla_pro(update, context):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
+        if update.effective_chat.type == 'private' or dataManager.is_impugnator(update.message.from_user.id):
+            message = 'Comandos: \n /test TEMA num \n /simulacre num \n /recull TIPUS num \n /pendents INICI FINAL \n /enquesta num \n/stats \n \nTipus de reculls: '
+            for sim, name in config.TEST_GROUP.items():
+                message += "\n {0} : {1} ".format(sim, name)
+            context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
+
+
+
 
 
 def simulacre(update, context):
     message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         try:
             total_sim = int(message_parts[1])
         except (ValueError, TypeError):
@@ -276,7 +293,7 @@ def simulacre(update, context):
                 send_polls(context, update.effective_user.id, requested_polls)
             else:
                 if dataManager.is_impugnator(update.message.from_user.id):
-                    send_polls(context, GROUP_ID, requested_polls)
+                    send_polls(context, config.GROUP_ID, requested_polls)
                 else:
                     context.bot.send_message(chat_id=update.effective_chat.id,
                                              text=random.choice(UNAUTHORIZED_JOKES))
@@ -290,7 +307,7 @@ def simulacre(update, context):
 def impgunation(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         message_parts = update.message.text.split()
-        if manage_users(context, update.message.from_user.id, GROUP_ID):
+        if manage_users(context, update.message.from_user.id, config.GROUP_ID):
             try:
                 impugnate_poll = int(message_parts[1])
             except (ValueError, TypeError):
@@ -311,7 +328,7 @@ def impgunation(update, context):
 def restaurator(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         message_parts = update.message.text.split()
-        if manage_users(context, update.message.from_user.id, GROUP_ID):
+        if manage_users(context, update.message.from_user.id, config.GROUP_ID):
             try:
                 restaurate_poll = int(message_parts[1])
             except (ValueError, TypeError):
@@ -329,7 +346,7 @@ def restaurator(update, context):
 
 
 def enquesta(update, context):
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         message_parts = update.message.text.split()
         requested_poll = [dataManager.get_single_poll(int(message_parts[1]))]
         if update.effective_chat.type == 'private':
@@ -346,7 +363,7 @@ def enquesta(update, context):
 
 def pendents(update, context):
     message_parts = update.message.text.split()
-    if manage_users(context, update.message.from_user.id, GROUP_ID):
+    if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         if len(message_parts) < 3:
             context.bot.send_message(chat_id=update.effective_chat.id, text='Digues un número final')
         else:
@@ -363,8 +380,8 @@ def pendents(update, context):
                 if update.effective_chat.type == 'private':
                     send_polls(context, update.effective_user.id, polls_pendents)
                 else:
-                    if update.message.from_user.id in IMPUGNATORS:
-                        send_polls(context, GROUP_ID, polls_pendents)
+                    if dataManager.is_impugnator(update.message.from_user.id):
+                        send_polls(context, config.GROUP_ID, polls_pendents)
                     else:
                         context.bot.send_message(chat_id=update.effective_chat.id,
                                                  text=random.choice(UNAUTHORIZED_JOKES))
@@ -382,10 +399,10 @@ def user_stats(update, context):
         message = "Ranking per usuari: \n"
         userName = ""
         for (user, ranking) in user_ranking:
-            if PRODUCTION_BUILD:
+            if config.PRODUCTION_BUILD:
                 # On Production
                 try:
-                    member_username = context.bot.get_chat_member(GROUP_ID, user)
+                    member_username = context.bot.get_chat_member(config.GROUP_ID, user)
                     userName = member_username.user.full_name
                 except BadRequest:
                     userName = 'Error'
@@ -403,7 +420,7 @@ def check_weekly(context):
     member_username = ''
     for user in weekly_fails['strikes']:
         try:
-            member_username = context.bot.get_chat_member(GROUP_ID, user)
+            member_username = context.bot.get_chat_member(config.GROUP_ID, user)
             # print ("WE DID IT!!")
         except (BadRequest, TimedOut):
             member_username = 'Error'
@@ -412,7 +429,7 @@ def check_weekly(context):
 
     for (user) in weekly_fails['bans']:
             try:
-                member_username = context.bot.get_chat_member(GROUP_ID, user)
+                member_username = context.bot.get_chat_member(config.GROUP_ID, user)
             except BadRequest:
                 member_username = 'Error'
 
@@ -420,18 +437,122 @@ def check_weekly(context):
 
 
 def start_weekly(update, context_passed):
-    context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0), context= context_passed, name='weekly')
-    context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
+    if dataManager.is_impugnator(update.message.from_user.id):
+        context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0), context= context_passed, name='weekly')
+        context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
+        context_passed.bot.send_message(chat_id=update.message.chat_id, text='El mínim de preguntes setmanals son: {}'.format(str(config.MIN_WEEKLY_POLLS)))
+    else:
+        context_passed.bot.send_message(chat_id=update.message.chat_id, text=random.choice(UNAUTHORIZED_JOKES))
 
 
 def stop_weekly(update, context):
-    context.job_queue.stop()
-    context.bot.send_message(chat_id=update.message.chat_id,text='Joc Parat!')
+    if dataManager.is_impugnator(update.message.from_user.id):
+        context.job_queue.stop()
+        context.bot.send_message(chat_id=update.message.chat_id,text='Joc Parat!')
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def ban_user(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:
+            banned = dataManager.ban_new_user(True, userid)
+            context.bot.send_message(chat_id=update.message.chat_id, text='Usuari {} banejat!'.format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text='Usuari {} no trobat'.format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id, text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def remove_ban_user(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):   
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:
+            banned = dataManager.ban_new_user(False, userid)
+            context.bot.send_message(chat_id=update.message.chat_id, text='Ban llevat al usuari {}'.format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text='Usuari {} no trobat'.format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id, text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def add_old_user(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:    
+            old = dataManager.set_old(True, userid)
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} afegit al Old members Club').format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} no trobat').format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def remove_old_user(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:    
+            old = dataManager.set_old(False, userid)
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} llevat del Old members Club').format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} no trobat').format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+
+def add_impugnator(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:    
+            old = dataManager.set_new_impugnator(True, userid)
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} afegit als impugnators').format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} no trobat').format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+
+def remove_impugnator(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = str(update.message.text.split()[1])
+        userid = get_user_id(username)
+        if username != 0:    
+            old = dataManager.set_new_impugnator(True, userid)
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} llevat dels impugnators').format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} no trobat').format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+def set_min_weekly(update, context):
+    new_min = str(update.message.text.split()[1])
+    if dataManager.is_impugnator(update.message.from_user.id):
+        for line in fileinput.input(['config.py'], inplace=True, backup='.bak'):
+            if line.startswith('MIN_WEEKLY_POLLS '):
+                # line = 'MIN_WEEKLY_POLLS = {} \n'.format(new_min)
+                print(line.replace(str(line), 'MIN_WEEKLY_POLLS = {} \n'.format(new_min)))
+                importlib.reload(config)
+                context.bot.send_message(chat_id=update.message.chat_id, text="El nou mínim de preguntes es {}".format(new_min))
+
+            else:
+                print(line, end='')
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id, text=random.choice(UNAUTHORIZED_JOKES))
+    pass
 
 
 def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    updater = Updater(token=TOKEN, use_context=True)
+    updater = Updater(token=config.TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     # job_queue = dispatcher.job_queue
     start_handler = CommandHandler('start', start, )
@@ -447,6 +568,15 @@ def main():
     user_stats_handler = CommandHandler('ranking', user_stats)
     check_weekly_handler = CommandHandler('startweekly', start_weekly, pass_job_queue=True)
     stop_weekly_handler = CommandHandler('stopweekly', stop_weekly, pass_job_queue=True)
+    ban_user_handler = CommandHandler('ban', ban_user)
+    remove_ban_user_handler = CommandHandler('unban', remove_ban_user)
+    add_old_user_handler = CommandHandler('newold', add_old_user)
+    remove_old_user_handler = CommandHandler('removeold', remove_old_user)
+    add_impugnator_handler = CommandHandler('newimpugnator', add_impugnator)
+    remove_impugnator_handler = CommandHandler('removeimpugnator', remove_impugnator)
+    set_min_handler = CommandHandler('setmin', set_min_weekly)
+
+
 
     poll_handler = MessageHandler(Filters.poll, poll_received_handler)
 
@@ -464,6 +594,13 @@ def main():
     dispatcher.add_handler(user_stats_handler)
     dispatcher.add_handler(check_weekly_handler)
     dispatcher.add_handler(stop_weekly_handler)
+    dispatcher.add_handler(ban_user_handler)
+    dispatcher.add_handler(add_old_user_handler)
+    dispatcher.add_handler(remove_ban_user_handler)
+    dispatcher.add_handler(remove_impugnator_handler)
+    dispatcher.add_handler(add_impugnator_handler)
+    dispatcher.add_handler(remove_old_user_handler)
+    dispatcher.add_handler(set_min_handler)
     updater.start_polling()
     updater.idle()
 

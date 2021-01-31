@@ -2,3 +2,9 @@
 /.idea/
 /__pycache__/
 .vscode
+config.py
+Dtos.pyc
+dataLayer.pyc
+config.pyc
+config.py.bak
+bash.exe.stackdump

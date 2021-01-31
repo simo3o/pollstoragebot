@@ -147,3 +147,6 @@ def delete_strikes(user: int):
 
 def get_user_list():
     return dataLayer.get_users_old_total()
+
+def set_old(old:bool, userid:int):
+    return dataLayer.set_old_member(old, userid)
