@@ -15,7 +15,7 @@ from telegram.ext import Updater
 from Dtos import PollDto
 import config
 import dataManager
-import importlib
+import imp
 
 UNAUTHORIZED_JOKES = [
     "No tens permisos per fer res a aquest bot, que t'has pensat...",
@@ -438,7 +438,7 @@ def check_weekly(context):
 
 def start_weekly(update, context_passed):
     if dataManager.is_impugnator(update.message.from_user.id):
-        context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0), context= context_passed, name='weekly')
+        context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0),days=[6], context= context_passed, name='weekly')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='https://media.giphy.com/media/1qnuGtWiouZUI/giphy.gif')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='El mínim de preguntes setmanals son: {}'.format(str(config.MIN_WEEKLY_POLLS)))
@@ -541,7 +541,7 @@ def set_min_weekly(update, context):
             if line.startswith('MIN_WEEKLY_POLLS '):
                 # line = 'MIN_WEEKLY_POLLS = {} \n'.format(new_min)
                 print(line.replace(str(line), 'MIN_WEEKLY_POLLS = {} \n'.format(new_min)))
-                importlib.reload(config)
+                imp.reload(config)
                 context.bot.send_message(chat_id=update.message.chat_id, text="El nou mínim de preguntes es {}".format(new_min))
 
             else:
