@@ -458,7 +458,7 @@ def ban_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:
+        if userid != 0:
             banned = dataManager.ban_new_user(True, userid)
             context.bot.send_message(chat_id=update.message.chat_id, text='Usuari {} banejat!'.format(username))
         else:
@@ -471,7 +471,7 @@ def remove_ban_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):   
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:
+        if userid != 0:
             banned = dataManager.ban_new_user(False, userid)
             context.bot.send_message(chat_id=update.message.chat_id, text='Ban llevat al usuari {}'.format(username))
         else:
@@ -484,7 +484,7 @@ def add_old_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:    
+        if userid != 0:
             old = dataManager.set_old(True, userid)
             context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} afegit al Old members Club').format(username))
         else:
@@ -497,7 +497,7 @@ def remove_old_user(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:    
+        if userid != 0:
             old = dataManager.set_old(False, userid)
             context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} llevat del Old members Club').format(username))
         else:
@@ -511,7 +511,7 @@ def add_impugnator(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:    
+        if userid != 0:
             old = dataManager.set_new_impugnator(True, userid)
             context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} afegit als impugnators').format(username))
         else:
@@ -525,7 +525,7 @@ def remove_impugnator(update, context):
     if dataManager.is_impugnator(update.message.from_user.id):
         username = " ".join(update.message.text.split()[1:])
         userid = get_user_id(context, username)
-        if username != 0:    
+        if userid != 0:
             old = dataManager.set_new_impugnator(True, userid)
             context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} llevat dels impugnators').format(username))
         else:
