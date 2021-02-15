@@ -425,7 +425,7 @@ def check_weekly(context):
         except (BadRequest, TimedOut):
             member_username = 'Error'
 
-       # context.bot.send_message(chat_id=GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(member_username))
+        context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(member_username))
 
     for (user) in weekly_fails['bans']:
             try:
@@ -433,7 +433,7 @@ def check_weekly(context):
             except BadRequest:
                 member_username = 'Error'
 
-           # context.bot.send_message(chat_id=GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(member_username))
+            context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(member_username))
 
 
 def start_weekly(update, context_passed):
