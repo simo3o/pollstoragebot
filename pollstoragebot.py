@@ -418,7 +418,7 @@ def user_stats(update, context):
 def check_weekly(context):
     weekly_fails = dataManager.check_users_weekly()
     member_username = ''
-    for user in weekly_fails['strikes']:
+    for user in list(weekly_fails['strikes'].keys()):
         try:
             member_username = context.bot.get_chat_member(config.GROUP_ID, user)
             # print ("WE DID IT!!")
@@ -427,7 +427,7 @@ def check_weekly(context):
 
         context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(member_username))
 
-    for (user) in weekly_fails['bans']:
+    for user in list(weekly_fails['bans'].keys()):
             try:
                 member_username = context.bot.get_chat_member(config.GROUP_ID, user)
             except BadRequest:
