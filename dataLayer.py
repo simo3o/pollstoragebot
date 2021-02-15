@@ -427,3 +427,21 @@ def set_old_member(old: bool, user_id: int) -> bool:
     finally:
         cnx.close()
         return result
+
+
+def new_member(user_id: int) -> bool:
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    result = False
+    try:
+        with cnx.cursor() as cursor:
+            sql = "INSERT INTO `users_db` (`User_Id`) VALUES ({})".format(user_id)
+            cursor.execute(sql)
+            result = True
+            cnx.commit()
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+        return result
+    finally:
+        cnx.close()
+        return result

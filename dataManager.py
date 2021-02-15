@@ -150,3 +150,6 @@ def get_user_list():
 
 def set_old(old:bool, userid:int):
     return dataLayer.set_old_member(old, userid)
+
+def add_member(userid:int)->bool :
+    return dataLayer.new_member(userid)

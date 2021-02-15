@@ -534,6 +534,21 @@ def remove_impugnator(update, context):
         context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
 
 
+
+def add_member(update, context):
+    if dataManager.is_impugnator(update.message.from_user.id):
+        username = " ".join(update.message.text.split()[1:])
+        userid = get_user_id(context, username)
+        if userid != 0:
+            old = dataManager.add_member(userid)
+            context.bot.send_message(chat_id=update.message.chat_id,text=("Usuari {} afegit a la bbdd d'usuaris").format(username))
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id,text=('Usuari {} no trobat').format(username))
+    else:
+        context.bot.send_message(chat_id=update.message.chat_id,text=random.choice(UNAUTHORIZED_JOKES))
+
+
+
 def set_min_weekly(update, context):
     new_min = str(update.message.text.split()[1])
     if dataManager.is_impugnator(update.message.from_user.id):
@@ -576,6 +591,7 @@ def main():
     add_impugnator_handler = CommandHandler('newimpugnator', add_impugnator)
     remove_impugnator_handler = CommandHandler('removeimpugnator', remove_impugnator)
     set_min_handler = CommandHandler('setmin', set_min_weekly)
+    add_member_handler = CommandHandler('newmember', add_member)
 
 
 
@@ -602,6 +618,7 @@ def main():
     dispatcher.add_handler(add_impugnator_handler)
     dispatcher.add_handler(remove_old_user_handler)
     dispatcher.add_handler(set_min_handler)
+    dispatcher.add_handler(add_member_handler)
     updater.start_polling()
     updater.idle()
 
