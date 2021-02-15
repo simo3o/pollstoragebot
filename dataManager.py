@@ -153,3 +153,28 @@ def set_old(old:bool, userid:int):
 
 def add_member(userid:int)->bool :
     return dataLayer.new_member(userid)
+
+def check_user(userid:int)->bool :
+    user_total = dataLayer.get_user_ranking(userid)
+    user_info = dataLayer.get_user_info(userid)
+    user_info["Weekly Polls"] = int(user_total) - int(user_info["Total_polls"])
+    user_info.pop("Id")
+    if user_info["Banned"] == 1:
+        user_info["Banned"] = "Sí"
+    else:
+        user_info["Banned"] = "No"
+
+    if user_info["Impugnator"] == 1:
+        user_info["Impugnator"] = "Sí"
+    else:
+        user_info["Impugnator"] = "No"
+
+    if user_info["Old_member"] == 1:
+        user_info["Old_member"] = "Sí"
+    else:
+        user_info["Old_member"] = "No"    
+
+    return user_info
+    
+
+    # return dataLayer.new_member(userid)

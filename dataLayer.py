@@ -445,3 +445,21 @@ def new_member(user_id: int) -> bool:
     finally:
         cnx.close()
         return result
+
+
+def get_user_info(user_id: int):
+    cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
+                          db='poll_bot')
+    result = ""
+    try:
+        with cnx.cursor() as cursor:
+            sql = "SELECT * FROM `users_db` WHERE `User_Id`={}".format(user_id)
+            cursor.execute(sql)
+            user_row = cursor.fetchone()
+            result = {"Id":user_row[0], "User_id":user_row[1],"Total_polls":user_row[2], "Strikes":user_row[3], "Impugnator": user_row[4], "Banned": user_row[5], "Old_member":user_row[6]}
+    except cnx.DataError as e:
+        print('ERROR: ' + e)
+        return result
+    finally:
+        cnx.close()
+        return result
