@@ -435,7 +435,7 @@ def new_member(user_id: int) -> bool:
     result = False
     try:
         with cnx.cursor() as cursor:
-            sql = "INSERT INTO `users_db` (`User_Id`) VALUES ({})".format(user_id)
+            sql = "REPLACE INTO `users_db` SET `User_Id` = {}".format(user_id)
             cursor.execute(sql)
             result = True
             cnx.commit()
