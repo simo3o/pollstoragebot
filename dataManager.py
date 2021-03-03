@@ -134,7 +134,7 @@ def check_users_weekly():
                 weekly_fails['bans'][user] = 'Ban'
         else:
             dataLayer.restart_user(user)
-#        update_user_total(user, new)
+        dataLayer.set_users_old_total(user, new)
     return weekly_fails
 
 
