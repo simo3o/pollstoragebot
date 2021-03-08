@@ -378,19 +378,19 @@ def get_users_old_total():
 def set_users_old_total(user_id: int, total: int):
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
                           db='poll_bot')
-    result = {}
+    result = False
     try:
         with cnx.cursor() as cursor:
-            sql = "UPDATE `users_db` set `Total_polls` = {}  WHERE `User_Id` ={0}".format(total, user_id)
+            sql = "UPDATE `users_db` set `Total_polls` = {}  WHERE `User_Id` ={}".format(total, user_id)
             cursor.execute(sql)
-            result = cursor.fetchone()
+            result = True
             cnx.commit()
     except cnx.DataError as e:
         print('ERROR: ' + e)
-        return []
+        return result
     finally:
         cnx.close()
-        return result[0]
+        return result
 
 
 def strike_user(user_id: int) -> int:

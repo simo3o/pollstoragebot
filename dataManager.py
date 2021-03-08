@@ -125,8 +125,14 @@ def check_users_weekly():
     weekly = {}
     weekly_fails = {'strikes':{}, 'bans':{}}
     for user, new in new_totals.items():
-        weekly[user] = new - old_total[user]
-        if weekly[user] < MIN_WEEKLY_POLLS and not is_impugnator(user) and not dataLayer.check_old(user):
+        if user in old_total:
+            weekly[user] = new - old_total[user]
+        else:
+            add_member(user)
+            old_total[user] = 0
+        impug = is_impugnator(user)
+        old_member = dataLayer.check_old(user) 
+        if weekly[user] < MIN_WEEKLY_POLLS and not impug and not old_member:
             strike_number= dataLayer.strike_user(user)
             weekly_fails['strikes'][user] = 'Strike'
             if strike_number > 1:
