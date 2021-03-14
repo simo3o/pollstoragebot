@@ -132,7 +132,8 @@ def check_users_weekly():
             old_total[user] = 0
         impug = is_impugnator(user)
         old_member = dataLayer.check_old(user) 
-        if weekly[user] < MIN_WEEKLY_POLLS and not impug and not old_member:
+        banned = is_banned(user)
+        if weekly[user] < MIN_WEEKLY_POLLS and not impug and not old_member and not banned:
             strike_number= dataLayer.strike_user(user)
             weekly_fails['strikes'][user] = 'Strike'
             if strike_number > 1:
