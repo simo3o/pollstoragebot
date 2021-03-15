@@ -421,7 +421,7 @@ def check_weekly(context):
     for user in list(weekly_fails['strikes'].keys()):
         try:
             member_username = context.bot.get_chat_member(config.GROUP_ID, user)
-            username = member_username.first_name + " " + member_username.last_name
+            username = member_username.user.first_name + " " + member_username.user.last_name
             # print ("WE DID IT!!")
         except (BadRequest, TimedOut):
             username = 'Error'
