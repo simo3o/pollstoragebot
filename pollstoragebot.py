@@ -424,7 +424,7 @@ def check_weekly(context):
             username = member_username.user.full_name 
             # print ("WE DID IT!!")
         except (BadRequest, TimedOut):
-            username = 'Error'
+            username.user.full_name = 'Error'
 
         context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(username))
 
@@ -433,7 +433,7 @@ def check_weekly(context):
                 member_username = context.bot.get_chat_member(config.GROUP_ID, user)
                 username = member_username.user.full_name
             except BadRequest:
-                username = 'Error'
+                username.user.full_name = 'Error'
 
             context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(username))
 
