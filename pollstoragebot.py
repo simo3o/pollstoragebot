@@ -432,7 +432,7 @@ def check_weekly(context):
             context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(username))
 
     if len(weekly_fails['bans']) < 1:
-        context.bot.send_message(chat_id=config.GROUP_ID, text="Ningú ha rebut un strike")
+        context.bot.send_message(chat_id=config.GROUP_ID, text="Ningú ha rebut un ban")
     else:
         for user in list(weekly_fails['bans'].keys()):
                 try:
