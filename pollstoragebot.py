@@ -418,29 +418,35 @@ def user_stats(update, context):
 def check_weekly(context):
     weekly_fails = dataManager.check_users_weekly()
     username = ''
-    for user in list(weekly_fails['strikes'].keys()):
-        try:
-            member_username = context.bot.get_chat_member(config.GROUP_ID, user)
-            username = member_username.user.full_name 
-            # print ("WE DID IT!!")
-        except (BadRequest, TimedOut):
-            username = 'Error'
-
-        context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(username))
-
-    for user in list(weekly_fails['bans'].keys()):
+    if len(weekly_fails['strikes']) < 1:
+        context.bot.send_message(chat_id=config.GROUP_ID, text="Ningú ha rebut un strike")
+    else:
+        for user in list(weekly_fails['strikes'].keys()):
             try:
                 member_username = context.bot.get_chat_member(config.GROUP_ID, user)
-                username = member_username.user.full_name
-            except BadRequest:
+                username = member_username.user.full_name 
+                # print ("WE DID IT!!")
+            except (BadRequest, TimedOut):
                 username = 'Error'
 
-            context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(username))
+            context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} no ha fet prou enquestes aquesta setmana! I te un strike mes".format(username))
+
+    if len(weekly_fails['bans']) < 1:
+        context.bot.send_message(chat_id=config.GROUP_ID, text="Ningú ha rebut un strike")
+    else:
+        for user in list(weekly_fails['bans'].keys()):
+                try:
+                    member_username = context.bot.get_chat_member(config.GROUP_ID, user)
+                    username = member_username.user.full_name
+                except BadRequest:
+                    username = 'Error'
+
+                context.bot.send_message(chat_id=config.GROUP_ID, text="Usuari {} Ha estat afegit a la llista negra i ja no pot utilitzar el sabut".format(username))
 
 
 def start_weekly(update, context_passed):
     if dataManager.is_impugnator(update.message.from_user.id):
-        context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(0, 0, 0),days=[0], context= context_passed, name='weekly')
+        context_passed.job_queue.run_daily(callback=check_weekly, time=datetime.time(9, 0, 0),days=[0], context= context_passed, name='weekly')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='https://media.giphy.com/media/1qnuGtWiouZUI/giphy.gif')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='Comença el joc!')
         context_passed.bot.send_message(chat_id=update.message.chat_id, text='El mínim de preguntes setmanals son: {}'.format(str(config.MIN_WEEKLY_POLLS)))
