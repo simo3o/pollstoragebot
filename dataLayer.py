@@ -11,7 +11,7 @@ from config import DB_CONFIG
 
 def add_poll_db(new_poll: PollDto) -> int:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result_id = 0
     try:
         with cnx.cursor() as cursor:
@@ -59,7 +59,7 @@ def add_poll_db(new_poll: PollDto) -> int:
 
 def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     agregated_poll = []
     try:
         for subject, quantity in request.items():
@@ -89,7 +89,7 @@ def get_poll_by_subject(request: Dict[str, int]) -> List[PollDto]:
 
 def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     agregated_poll = []
     try:
         for subject, quantity in request.items():
@@ -119,7 +119,7 @@ def get_poll_by_group(request: Dict[str, int]) -> List[PollDto]:
 
 def get_pendents_db(first_id: int, last_id: int) -> List[PollDto]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     agregated_poll = []
     first_row = int(first_id) - 1
     last_row = int(last_id) - int(first_id) + 1
@@ -151,7 +151,7 @@ def get_pendents_db(first_id: int, last_id: int) -> List[PollDto]:
 
 def get_stats_db(request: Dict[str, int]) -> Dict[str, int]:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = []
     try:
         for subject in request:
@@ -173,7 +173,7 @@ def get_stats_db(request: Dict[str, int]) -> Dict[str, int]:
 
 def poll_impugnation_db(impug_value: bool, pol_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     try:
         with cnx.cursor() as cursor:
             sql = "UPDATE `polls` SET `Impug`=%s WHERE `ID`=%s"
@@ -194,7 +194,7 @@ def poll_impugnation_db(impug_value: bool, pol_id: int) -> bool:
 
 def get_single_poll_db(poll_id: int) -> PollDto:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     poll_result = PollDto()
     try:
         with cnx.cursor() as cursor:
@@ -217,11 +217,11 @@ def get_single_poll_db(poll_id: int) -> PollDto:
 
 def get_user_list():
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = {}
     try:
         with cnx.cursor() as cursor:
-            sql ="SELECT DISTINCT `User_Id` FROM `polls` "
+            sql = "SELECT DISTINCT `User_Id` FROM `polls` "
             cursor.execute(sql)
             result = cursor.fetchall()
     except cnx.DataError as e:
@@ -233,7 +233,7 @@ def get_user_list():
 
 def get_user_ranking(user_id: int) -> int:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = {}
     try:
         with cnx.cursor() as cursor:
@@ -249,14 +249,14 @@ def get_user_ranking(user_id: int) -> int:
 
 def update_user_total(user_id: int, total: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
-    result= False
+                          db='s12_bot')
+    result = False
     try:
         with cnx.cursor() as cursor:
-            #sql = "UPDATE `users_db` SET `Total_polls` = %s, WHERE `User_Id` =%s"
+            # sql = "UPDATE `users_db` SET `Total_polls` = %s, WHERE `User_Id` =%s"
             sql = "INSERT INTO `users_db` (`User_Id`, `Total_polls`, `Impugnator`,`Banned`) VALUES (" \
-                          "%s, %s, %s, %s)"
-            cursor.execute(sql,  (user_id, total, 0, 0))
+                  "%s, %s, %s, %s)"
+            cursor.execute(sql, (user_id, total, 0, 0))
             result = True
 
             cnx.commit()
@@ -267,9 +267,10 @@ def update_user_total(user_id: int, total: int) -> bool:
         cnx.close()
         return result
 
-def set_impugnator(impugnator: bool, user_id:int) -> bool:
+
+def set_impugnator(impugnator: bool, user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -287,7 +288,7 @@ def set_impugnator(impugnator: bool, user_id:int) -> bool:
 
 def ban_user(ban: bool, user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -305,7 +306,7 @@ def ban_user(ban: bool, user_id: int) -> bool:
 
 def check_impugnator(user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -323,7 +324,7 @@ def check_impugnator(user_id: int) -> bool:
 
 def check_ban(user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -341,7 +342,7 @@ def check_ban(user_id: int) -> bool:
 
 def check_old(user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -359,7 +360,7 @@ def check_old(user_id: int) -> bool:
 
 def get_users_old_total():
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = {}
     try:
         with cnx.cursor() as cursor:
@@ -377,7 +378,7 @@ def get_users_old_total():
 
 def set_users_old_total(user_id: int, total: int):
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -395,7 +396,7 @@ def set_users_old_total(user_id: int, total: int):
 
 def strike_user(user_id: int) -> int:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = {}
     try:
         with cnx.cursor() as cursor:
@@ -414,8 +415,8 @@ def strike_user(user_id: int) -> int:
 
 def restart_user(user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
-    result = False    
+                          db='s12_bot')
+    result = False
     try:
         with cnx.cursor() as cursor:
             sql = "UPDATE `users_db` set `Strikes` = 0 WHERE `User_Id` = {}".format(user_id)
@@ -432,7 +433,7 @@ def restart_user(user_id: int) -> bool:
 
 def set_old_member(old: bool, user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
@@ -450,12 +451,12 @@ def set_old_member(old: bool, user_id: int) -> bool:
 
 def new_member(user_id: int) -> bool:
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = False
     try:
         with cnx.cursor() as cursor:
-        #    sql = "REPLACE INTO `users_db` SET `User_Id` = {}".format(user_id)
-            sql ="INSERT INTO `users_db` (User_Id) VALUES ({}) ON DUPLICATE KEY UPDATE id=id".format(user_id)
+            #    sql = "REPLACE INTO `users_db` SET `User_Id` = {}".format(user_id)
+            sql = "INSERT INTO `users_db` (User_Id) VALUES ({}) ON DUPLICATE KEY UPDATE id=id".format(user_id)
             cursor.execute(sql)
             result = True
             cnx.commit()
@@ -469,14 +470,15 @@ def new_member(user_id: int) -> bool:
 
 def get_user_info(user_id: int):
     cnx = pymysql.connect(user=DB_CONFIG.get('user'), passwd=DB_CONFIG.get('password'), host=DB_CONFIG.get('host'),
-                          db='poll_bot')
+                          db='s12_bot')
     result = ""
     try:
         with cnx.cursor() as cursor:
             sql = "SELECT * FROM `users_db` WHERE `User_Id`={}".format(user_id)
             cursor.execute(sql)
             user_row = cursor.fetchone()
-            result = {"Id":user_row[0], "User_id":user_row[1],"Total_polls":user_row[2], "Strikes":user_row[3], "Impugnator": user_row[4], "Banned": user_row[5], "Old_member":user_row[6]}
+            result = {"Id": user_row[0], "User_id": user_row[1], "Total_polls": user_row[2], "Strikes": user_row[3],
+                      "Impugnator": user_row[4], "Banned": user_row[5], "Old_member": user_row[6]}
     except cnx.DataError as e:
         print('ERROR: ' + e)
         return result

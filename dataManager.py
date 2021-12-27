@@ -6,33 +6,16 @@ from config import MIN_WEEKLY_POLLS
 import dataLayer
 
 SIMUL_SCHEMA = {
-    'MECANICA': 7,
-    'FOC': 7,
-    'ESTRUC': 8,
-    'ELEC': 6,
-    'RISC': 6,
-    'HIDRA': 7,
-    'SANITARI': 6,
-    'MOTOR': 6,
-    'CARTO': 6,
-    'QUIMICA': 3,
-    'PCI': 6,
-    'FISICA': 3,
-    'METEO': 5,
-    'AGENTS': 3,
-    'CIVIL': 2,
-    'SPEIS': 1,
-    'TERRI': 2,
-    'CONSTI': 1,
-    'EAC': 2,
-    'EBEP': 3,
-    'PRL': 3,
-    'GUARDIA': 2,
-    'INTERIOR': 1,
-    'DONA': 1,
-    'VLA': 1,
-    'HIBRID': 1,
-    'FOREST': 1
+    'M1': 10,
+    'M2': 10,
+    'M3': 10,
+    'M4': 10,
+    'M5': 10,
+    'M6': 10,
+    'M7': 10,
+    'M8': 10,
+    'M9': 10,
+    'M10': 10,
 }
 
 
@@ -134,7 +117,7 @@ def check_users_weekly():
         old_member = dataLayer.check_old(user) 
         banned = is_banned(user)
         if weekly[user] < MIN_WEEKLY_POLLS and not impug and not old_member and not banned:
-            strike_number= dataLayer.strike_user(user)
+            strike_number = dataLayer.strike_user(user)
             weekly_fails['strikes'][user] = 'Strike'
             if strike_number > 1:
                 dataLayer.ban_user(True, user)
@@ -144,6 +127,13 @@ def check_users_weekly():
         dataLayer.set_users_old_total(user, new)
     return weekly_fails
 
+
+def strike_weekly(userlist):
+    pass
+
+
+def ban_weekly(userlist):
+    pass
 
 def strike_user_weekly(user: int):
     return dataLayer.strike_user(user)

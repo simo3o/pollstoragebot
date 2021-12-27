@@ -48,7 +48,7 @@ def manage_users(context, user_id, group_id) -> bool:
     except BadRequest:
         return False
     except TimedOut:
-        return False
+      return False
     else:
         if config.PRODUCTION_BUILD:
             if member_of_group.status == 'administrator' or member_of_group.status == 'member' or member_of_group.status == 'creator':
