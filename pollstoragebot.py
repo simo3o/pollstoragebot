@@ -256,9 +256,7 @@ def stats(update, context):
 def xulla(update, context):
     if manage_users(context, update.message.from_user.id, config.GROUP_ID):
         if update.effective_chat.type == 'private' or dataManager.is_impugnator(update.message.from_user.id):
-            message = 'Comandos: \n /test TEMA num \n /simulacre num \n /recull TIPUS num \n /pendents INICI FINAL \n /enquesta num \n/stats \n \nTipus de reculls: '
-            for sim, name in config.TEST_GROUP.items():
-                message += "\n {0} : {1} ".format(sim, name)
+            message = 'Comandos: \n /test TEMA num \n /simulacre num \n /pendents INICI FINAL \n /enquesta num \n/stats \n'
             context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(UNAUTHORIZED_JOKES))
